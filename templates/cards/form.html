@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-gray-800 p-6 rounded-lg">
+    <h2 class="text-2xl font-bold mb-6">{{ card.id if card else "Nova Carta" }}</h2>
+    
+    <form method="POST" action="{{ '/cards/' + card.id + '/edit' if card else '/cards/new' }}" enctype="multipart/form-data" class="space-y-4" id="cardForm">
+        <div>
+            <label class="block text-sm font-medium">ID</label>
+            <input type="text" name="id" value="{{ card.id if card else '' }}" required
+                   class="mt-1 w-full p-2 bg-gray-700 rounded" id="cardId">
+            <div class="text-red-500 text-sm hidden" id="idError">Este ID já está em uso</div>
+        </div>
+ 
+        <div>
+            <label class="block text-sm font-medium">Nome</label>
+            <input type="text" name="name" value="{{ card.name if card else '' }}" required
+                   class="mt-1 w-full p-2 bg-gray-700 rounded" id="cardName">
+            <div class="text-red-500 text-sm hidden" id="nameError">Este nome já está em uso</div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Cor</label>
+            <select name="color" class="mt-1 w-full p-2 bg-gray-700 rounded" required>
+                <option value="Purple" {% if card and card.color == 'Purple' %}selected{% endif %}>Purple</option>
+                <option value="Blue" {% if card and card.color == 'Blue' %}selected{% endif %}>Blue</option>
+                <option value="Red" {% if card and card.color == 'Red' %}selected{% endif %}>Red</option>
+                <option value="Green" {% if card and card.color == 'Green' %}selected{% endif %}>Green</option>
+                <option value="Gold" {% if card and card.color == 'Gold' %}selected{% endif %}>Gold</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Tipo</label>
+            <select name="card_type" class="mt-1 w-full p-2 bg-gray-700 rounded" onchange="updateFormFields()" required>
+                <option value="Leader" {% if card and card.card_type == 'Leader' %}selected{% endif %}>Leader</option>
+                <option value="Combat" {% if card and card.card_type == 'Combat' %}selected{% endif %}>Combat</option>
+                <option value="Action" {% if card and card.card_type == 'Action' %}selected{% endif %}>Action</option>
+                <option value="Support" {% if card and card.card_type == 'Support' %}selected{% endif %}>Support</option>
+                <option value="Equipment" {% if card and card.card_type == 'Equipment' %}selected{% endif %}>Equipment</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Raridade</label>
+            <select name="rarity" class="mt-1 w-full p-2 bg-gray-700 rounded" required>
+                <option value="Common" {% if card and card.rarity == 'Common' %}selected{% endif %}>Common</option>
+                <option value="Uncommon" {% if card and card.rarity == 'Uncommon' %}selected{% endif %}>Uncommon</option>
+                <option value="Rare" {% if card and card.rarity == 'Rare' %}selected{% endif %}>Rare</option>
+                <option value="Super Rare" {% if card and card.rarity == 'Super Rare' %}selected{% endif %}>Super Rare</option>
+            </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium">Custo</label>
+                <input type="number" name="cost" value="{{ card.cost if card else '' }}" 
+                       class="mt-1 w-full p-2 bg-gray-700 rounded">
+            </div>
+            
+            <div id="powerField">
+                <label class="block text-sm font-medium">Poder</label>
+                <input type="number" name="power" value="{{ card.power if card else '' }}" 
+                       class="mt-1 w-full p-2 bg-gray-700 rounded">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Texto do Efeito</label>
+            <textarea name="text" class="mt-1 w-full p-2 bg-gray-700 rounded h-24" required>{{ card.text if card else '' }}</textarea>
+        </div>
+ 
+        <div>
+            <label class="block text-sm font-medium">Texto de Flavor</label>
+            <textarea name="flavor_text" class="mt-1 w-full p-2 bg-gray-700 rounded h-24">{{ card.flavor_text if card else '' }}</textarea>
+        </div>
+ 
+        <div>
+            <label class="block text-sm font-medium">Imagem</label>
+            <input type="file" name="image" accept="image/*" 
+                   class="mt-1 w-full p-2 bg-gray-700 rounded">
+            {% if card and card.image_url %}
+                <img src="{{ card.image_url }}" alt="{{ card.name }}" class="mt-2 h-40 object-contain">
+            {% endif %}
+        </div>
+ 
+        <div class="flex justify-end space-x-4 mt-6">
+            <button type="button" onclick="window.location.href='/cards'" 
+                    class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500">
+                Cancelar
+            </button>
+            <button type="submit" 
+                    class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
+                Salvar
+            </button>
+        </div>
+    </form>
+</div>
+ 
+<script>
+// Função para atualizar campos baseado no tipo
+function updateFormFields() {
+    const cardType = document.querySelector('[name="card_type"]').value;
+    const powerField = document.querySelector('#powerField');
+    
+    if (cardType === 'Combat' || cardType === 'Leader') {
+        powerField.style.display = 'block';
+    } else {
+        powerField.style.display = 'none';
+        document.querySelector('[name="power"]').value = '';
+    }
+}
+
+// Função para verificar campos existentes
+async function checkFields() {
+    const id = document.getElementById('cardId').value;
+    const name = document.getElementById('cardName').value;
+    
+    if (!id || !name) return;
+
+    const formData = new FormData();
+    formData.append('id', id);
+    formData.append('name', name);
+
+    try {
+        const response = await fetch('/cards/new/check', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        // Reseta os estilos
+        document.getElementById('cardId').classList.remove('border-red-500', 'bg-red-900/20');
+        document.getElementById('cardName').classList.remove('border-red-500', 'bg-red-900/20');
+        document.getElementById('idError').classList.add('hidden');
+        document.getElementById('nameError').classList.add('hidden');
+        
+        // Aplica os erros se necessário
+        if (data.id) {
+            document.getElementById('cardId').classList.add('border-red-500', 'bg-red-900/20');
+            document.getElementById('idError').classList.remove('hidden');
+        }
+        
+        if (data.name) {
+            document.getElementById('cardName').classList.add('border-red-500', 'bg-red-900/20');
+            document.getElementById('nameError').classList.remove('hidden');
+        }
+        
+        // Desabilita o botão de salvar se houver erros
+        const submitButton = document.querySelector('button[type="submit"]');
+        submitButton.disabled = data.id || data.name;
+        submitButton.classList.toggle('opacity-50', data.id || data.name);
+    } catch (error) {
+        console.error('Erro ao verificar campos:', error);
+    }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    updateFormFields();
+    document.getElementById('cardId').addEventListener('input', checkFields);
+    document.getElementById('cardName').addEventListener('input', checkFields);
+});
+</script>
+{% endblock %}

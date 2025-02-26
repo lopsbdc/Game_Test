@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg">
+    <div class="flex">
+        <div class="flex-1 pr-6">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold">{{ card.name }}</h2>
+            </div>
+            <div class="grid gap-4">
+                <div><span class="font-bold">ID:</span> {{ card.id }}</div>
+                <div><span class="font-bold">Tipo:</span> {{ card.card_type }}</div>
+                <div><span class="font-bold">Custo:</span> {{ card.cost }}</div>
+                <div><span class="font-bold">Poder:</span> {{ card.power }}</div>
+                <div><span class="font-bold">Texto:</span> {{ card.text }}</div>
+            </div>
+        </div>
+        {% if card.image_url %}
+        <div class="w-96">
+            <img src="{{ card.image_url }}" alt="{{ card.name }}" class="w-full rounded shadow-lg">
+        </div>
+        {% endif %}
+    </div>
+    <div class="mt-6">
+        <a href="/cards" class="text-blue-400 hover:text-blue-300">Voltar</a>
+    </div>
+</div>
+{% endblock %}
