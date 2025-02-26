@@ -1,0 +1,275 @@
+1. PREPARAÇÃO DO JOGO
+Deck Building
+1.	Mínimo 50 cartas, máximo 80 cartas (total)
+2.	40-50 cartas principais
+3.	10-30 cartas de dinheiro
+4.	Heat Deck: Exatamente 5 cartas
+5.	Máximo 3 cópias de cada carta
+6.	1 Leader Card
+Início do Jogo
+1.	Cada jogador:
+2.	Embaralha seu deck
+3.	Coloca Leader Card na zona de Leader
+4.	Compra 6 cartas
+5.	Mulligan seletivo (1x permitido):
+6.	Escolhe quais cartas manter
+7.	Embaralha o resto
+8.	Compra até ter 6 cartas novamente
+2. TIPOS DE CARTA
+Leader Card
+1.	Frente: Estado normal
+2.	Verso: Awakening/Heat Mode
+3.	Vida inicial:
+4.	30 vida: Leaders agressivos
+5.	35 vida: Leaders balanceados
+6.	40 vida: Leaders defensivos
+Combat Cards (Characters)
+1.	Podem atacar e defender
+2.	Têm valor de Poder
+3.	Podem receber equipamentos
+4.	Viram (tap) ao atacar
+Support Cards
+1.	Permanecem em campo
+2.	Efeitos contínuos
+3.	Podem ser alvos de remoção
+3. ESTRUTURA DO TURNO
+Fase Inicial
+1.	Desvire todas suas cartas
+2.	Compre 1 carta
+3.	Ative efeitos de "início de turno"
+Fase Principal 1
+Você pode:
+1.	Jogar UMA carta de dinheiro
+2.	Jogar personagens
+3.	Jogar equipamentos
+4.	Jogar suportes
+5.	Usar habilidades do Leader
+6.	Ativar efeitos
+7.	Quem começa, não pode atacar no turno 1
+Fase de Combate
+Declaração de Ataque
+1.	Declare atacantes (um por vez)
+2.	Para cada ataque:
+3.	Escolha alvo (Adversário, leader ou personagem)
+4.	Oponente pode:
+5.	Usar carta em pé para defender (toma dano no lugar)
+6.	Usar cartas em pé para dar suporte (+1 por carta). Depois, vire todas as cartas usadas para suporte em Rest mode.
+7.	Usar Actions/Consumables (pagando custos)
+8.	Tomar o dano
+Resolução
+1.	Compare poderes
+2.	Poder maior vence
+3.	Empate: nada acontece. Atacante ganha Heat.
+4.	Dano excedente passa ao jogador
+5.	Ganhe Heat apropriado
+Fase Principal 2
+Você pode:
+1.	Jogar mais cartas
+2.	Usar Heat Actions
+3.	Usar Heat Cards
+4.	Ativar habilidades
+Fase Final
+1.	Resolva efeitos de "fim de turno"
+2.	Descarte até limite de mão (7 cartas)
+4. SISTEMA DE COMBATE
+Declaração de Ataque
+1.	Jogador ativo escolhe um atacante
+2.	Atacante vira (tap)
+3.	Escolhe alvo (Leader ou personagem)
+4.	Pode atacar personagens em pé ou rest mode
+5.	Janela de resposta começa
+5. OPÇÕES DE DEFESA
+Bloqueio Direto
+1.	Usar personagem em pé para defender
+2.	Personagem defensor toma o dano no lugar
+3.	Defensor vira após o combate
+Suporte de Defesa
+1.	Usar personagens em pé para dar suporte
+2.	Cada personagem dá +1 de poder ao defensor
+3.	Personagens de suporte viram
+4.	Não tomam dano
+Cartas de Resposta
+1.	Podem usar Actions/Consumables
+2.	Devem pagar custos normalmente
+3.	Múltiplas respostas permitidas
+6. RESOLUÇÃO DE COMBATE
+Comparação de Poder
+1.	Maior poder vence
+2.	Se empate, nada acontece
+3.	Dano excedente passa ao jogador
+Distribuição de Dano
+1.	Dano = Diferença de poder
+2.	Personagem com menor poder morre
+3.	Se passar defensor, dano excedente vai ao alvo original
+7. SISTEMA DE HEAT
+Acumulando Heat
+1.	Máximo: 5 Heat
+2.	Ganhe 1 Heat quando:
+3.	Tomar dano direto
+4.	Causar dano direto
+5.	Perder personagem
+6.	Efeitos específicos de cartas
+Usando Heat
+Heat Effects
+1.	Melhorias em cartas normais
+2.	Custam 1-3 Heat
+3.	Efeitos imediatos
+Heat Mode (Leader)
+1.	Requer 5 Heat
+2.	1x por jogo
+3.	Dura seu turno + turno do oponente
+4.	Ativa efeito especial do Leader
+Heat Cards
+1.	Requer 5 Heat para acessar
+2.	Custam 5 Heat + custo de mana
+3.	Uso único por jogo
+4.	Efeitos mais poderosos
+8. SISTEMA DE DINHEIRO
+Jogando Dinheiro
+1.	Uma carta de dinheiro por turno
+2.	Vira (tap) para gerar 1 dinheiro
+3.	Carta virada não gera mais recursos até desvirar
+Custos
+1.	Cartas da cor do Leader: Custo normal
+2.	Cartas de outras cores: Custo +1
+3.	Cartas incolores: Custo normal
+9. REST MODE (CARTAS VIRADAS)
+Quando uma carta vira
+1.	Ao atacar
+2.	Ao defender
+3.	Ao dar suporte (+1)
+4.	Por efeitos de cartas
+Restrições em Rest Mode
+1.	Não pode atacar
+2.	Não pode defender
+3.	Não pode dar suporte
+4.	Pode ser alvo de ataques
+5.	Pode receber equipamentos/efeitos
+10. TIMING E RESPOSTAS
+Ordem de Resolução
+1.	Jogador ativo declara ação
+2.	Janela de resposta abre
+3.	Oponente pode responder com:
+4.	Action Cards
+5.	Consumable Cards
+6.	Efeitos de cartas em campo
+7.	Jogador ativo pode responder
+8.	Resolução em ordem reversa
+Durante Combate
+1.	Podem ser usados Actions/Consumables
+2.	Character/Support/Equipment apenas no seu turno
+3.	Heat Cards apenas no seu turno
+4.	Heat Effects podem ser usados em resposta
+11. CONDIÇÕES DE VITÓRIA/DERROTA
+Vitória por
+1.	Reduzir vida do oponente a 0
+2.	Oponente não poder comprar quando necessário
+Empate quando
+1.	Ambos perdem simultaneamente
+2.	Efeito força empate
+12. CORES E IDENTIDADES
+ROXO (Velocidade/Técnica)
+Foco Principal
+1.	Velocidade e execução rápida
+2.	Draw/filtro de deck
+3.	Múltiplos ataques menores
+4.	Comprar/rodar deck rapidamente
+Mecânicas Principais
+1.	Combos em sequência
+2.	Defesas ágeis (dodge/redirecionamento)
+3.	Filtro de deck
+4.	Efeitos "quando comprar carta"
+Pontos Fortes
+1.	Pode jogar várias cartas por turno
+2.	Mantém mão cheia de opções
+3.	Boa recuperação pós-wipe
+4.	Defesas eficientes mas não permanentes
+Fraquezas
+1.	Pode perder por mill (ficar sem cartas)
+2.	Vulnerável se interrompido
+3.	Planos "tudo ou nada"
+4.	Defesas fracas
+AZUL (Controle)
+Foco Principal
+1.	Controle total do jogo
+2.	Negação de ações
+3.	Counters estratégicos
+4.	Vitória no late game
+Mecânicas Principais
+1.	Interrupção de jogadas
+2.	Roubo de recursos
+3.	Controle de board
+4.	Personagens que limitam ações
+Pontos Fortes
+1.	Domínio do late game
+2.	Respostas para várias situações
+3.	Controle efetivo do board
+4.	Proteções consistentes
+Fraquezas
+1.	Early game fraco
+2.	Precisa da resposta certa
+3.	Sofre sob pressão constante
+4.	Sem counters fica vulnerável
+VERMELHO (Agressão)
+Foco Principal
+1.	Dano alto e direto
+2.	Sacrifício por poder
+3.	Penetração de dano
+4.	Pressão constante
+Mecânicas Principais
+1.	Auto-dano por benefícios
+2.	Contra-ataques poderosos
+3.	Remoção por dano
+4.	Buffs temporários fortes
+Pontos Fortes
+1.	Dano rápido e alto
+2.	Pressão constante
+3.	Finalizadores poderosos
+4.	Bom contra controle
+Fraquezas
+1.	Vida baixa
+2.	Recursos limitados
+3.	Vulnerável a controle
+4.	Sem plano B
+VERDE (Tanque/Sobrevivência)
+Foco Principal
+1.	Alta sobrevivência
+2.	Defesas robustas
+3.	Cura e sustentabilidade
+4.	Vitória pelo cansaço
+Mecânicas Principais
+1.	Buffs permanentes
+2.	Ganho de vida constante
+3.	Proteções persistentes
+4.	Escalada com vida alta
+Pontos Fortes
+1.	Alta resistência
+2.	Difícil de remover do board
+3.	Bom contra aggro
+4.	Vence no late game
+Fraquezas
+1.	Muito lento
+2.	Dano baixo
+3.	Vulnerável a remoção
+4.	Dependente de setup
+DOURADO (Recursos)
+Foco Principal
+1.	Geração de recursos
+2.	Cartas premium caras
+3.	Tutores específicos
+4.	Versatilidade de jogadas
+Mecânicas Principais
+1.	Mana adicional
+2.	Busca de cartas específicas
+3.	Reutilização de recursos
+4.	Efeitos poderosos e caros
+Pontos Fortes
+1.	Recursos abundantes
+2.	Acesso a cartas específicas
+3.	Cards muito poderosos
+4.	Versátil com outras cores
+Fraquezas
+1.	Setup inicial lento
+2.	Vulnerável a aggro
+3.	Dependente de engine
+4.	Curva alta de mana
