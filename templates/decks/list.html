@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Cabeçalho com botão Novo Deck -->
+<div class="mb-4 flex justify-between items-center">
+    <h2 class="text-2xl font-bold">Decks</h2>
+    <button onclick="window.location.href='/decks/new'"
+            class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
+        Novo Deck
+    </button>
+</div>
+
+<!-- Barra de busca e filtros -->
+<div class="mb-6">
+    <div class="flex gap-4">
+        <div class="flex-1 relative">
+            <input type="text" 
+                   id="deckSearch"
+                   placeholder="Buscar decks..." 
+                   class="w-full p-2 pr-10 bg-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="absolute right-3 top-2.5 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if decks %}
+<!-- Lista de decks -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for deck in decks %}
+    <div class="bg-gray-800 p-5 rounded-lg shadow-lg border-2 border-gray-700 hover:border-blue-500 transition-all duration-200">
+        <div class="flex justify-between items-start mb-3">
+            <h3 class="font-bold text-lg text-blue-400">{{ deck.name }}</h3>
+            <div class="text-xs text-gray-400">ID: {{ deck.id }}</div>
+        </div>
+        
+        <!-- Estatísticas básicas do deck -->
+        <div class="text-sm space-y-2 mb-4">
+            {% if deck.stats %}
+            <p>
+                <span class="text-gray-400">Total de cartas:</span>
+                <span class="text-white">{{ deck.stats.card_count }}</span>
+            </p>
+            <div class="flex space-x-4">
+                <p>
+                    <span class="text-gray-400">Principal:</span>
+                    <span class="text-white">{{ deck.stats.main_count }}</span>
+                </p>
+                <p>
+                    <span class="text-gray-400">Dinheiro:</span>
+                    <span class="text-yellow-400">{{ deck.stats.money_count }}</span>
+                </p>
+                <p>
+                    <span class="text-gray-400">Heat:</span>
+                    <span class="text-red-400">{{ deck.stats.heat_count }}</span>
+                </p>
+            </div>
+            {% endif %}
+            
+            {% if deck.description %}
+            <p class="text-gray-300 mt-2 line-clamp-2">{{ deck.description }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Data de criação -->
+        <div class="text-xs text-gray-400 mt-3">
+            Criado em: {{ deck.created_at.strftime('%d/%m/%Y') }}
+        </div>
+        
+        <!-- Ações -->
+        <div class="flex space-x-2 mt-4">
+            <button onclick="window.location.href='/decks/{{ deck.id }}'"
+                    class="text-blue-400 hover:text-blue-300">Ver</button>
+            <button onclick="window.location.href='/decks/{{ deck.id }}/edit'"
+                    class="text-yellow-400 hover:text-yellow-300">Editar</button>
+            <button onclick="confirmDelete('{{ deck.id }}')"
+                    class="text-red-400 hover:text-red-300">Excluir</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<!-- Mensagem quando não houver decks -->
+<div class="bg-gray-800 p-6 rounded-lg text-center">
+    <p class="text-gray-300 mb-4">Você ainda não tem nenhum deck.</p>
+    <button onclick="window.location.href='/decks/new'"
+            class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
+        Criar Primeiro Deck
+    </button>
+</div>
+{% endif %}
+
+<!-- Script para confirmação de exclusão -->
+<script>
+function confirmDelete(deckId) {
+    if (confirm('Tem certeza que deseja excluir este deck?')) {
+        window.location.href = `/decks/${deckId}/delete`;
+    }
+}
+
+// Função de busca
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('deckSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const deckCards = document.querySelectorAll('.grid > div');
+            
+            deckCards.forEach(card => {
+                const name = card.querySelector('h3').textContent.toLowerCase();
+                const desc = card.querySelector('.text-gray-300')?.textContent.toLowerCase() || '';
+                const id = card.querySelector('.text-xs.text-gray-400').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || desc.includes(searchTerm) || id.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

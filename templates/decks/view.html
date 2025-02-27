@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto bg-gray-800 p-6 rounded-lg">
+    <!-- Cabeçalho do Deck -->
+    <div class="mb-6 flex flex-col md:flex-row md:justify-between md:items-center">
+        <div>
+            <h2 class="text-2xl font-bold">{{ deck.name }}</h2>
+            <div class="text-sm text-gray-400">ID: {{ deck.id }}</div>
+            {% if deck.description %}
+            <div class="mt-2 text-gray-300">{{ deck.description }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-4 md:mt-0 flex space-x-2">
+            <button onclick="window.location.href='/decks/{{ deck.id }}/edit'" 
+                    class="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-500">
+                Editar
+            </button>
+            <button onclick="confirmDelete('{{ deck.id }}')" 
+                    class="px-4 py-2 bg-red-600 rounded hover:bg-red-500">
+                Excluir
+            </button>
+            <button onclick="window.location.href='/decks'" 
+                    class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500">
+                Voltar
+            </button>
+        </div>
+    </div>
+    
+    <!-- Validação do Deck -->
+    {% if validation %}
+    <div class="mb-6 p-4 rounded-lg {% if validation.valid %}bg-green-900/50 border border-green-500{% else %}bg-red-900/50 border border-red-500{% endif %}">
+        <h3 class="font-medium mb-2 {% if validation.valid %}text-green-400{% else %}text-red-400{% endif %}">
+            {% if validation.valid %}
+            Deck Válido
+            {% else %}
+            Deck Inválido
+            {% endif %}
+        </h3>
+        
+        {% if validation.errors %}
+        <ul class="list-disc pl-5 text-red-300">
+            {% for error in validation.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
+            <div>
+                <div class="text-sm text-gray-400">Principal</div>
+                <div class="text-lg font-bold {% if validation.stats.main_deck < 40 or validation.stats.main_deck > 50 %}text-red-500{% else %}text-white{% endif %}">
+                    {{ validation.stats.main_deck }}
+                </div>
+                <div class="text-xs text-gray-400">40-50 cartas</div>
+            </div>
+            <div>
+                <div class="text-sm text-gray-400">Dinheiro</div>
+                <div class="text-lg font-bold {% if validation.stats.money_deck < 10 or validation.stats.money_deck > 30 %}text-red-500{% else %}text-yellow-400{% endif %}">
+                    {{ validation.stats.money_deck }}
+                </div>
+                <div class="text-xs text-gray-400">10-30 cartas</div>
+            </div>
+            <div>
+                <div class="text-sm text-gray-400">Heat</div>
+                <div class="text-lg font-bold {% if validation.stats.heat_deck != 5 %}text-red-500{% else %}text-red-400{% endif %}">
+                    {{ validation.stats.heat_deck }}
+                </div>
+                <div class="text-xs text-gray-400">5 cartas</div>
+            </div>
+            <div>
+                <div class="text-sm text-gray-400">Total</div>
+                <div class="text-lg font-bold {% if validation.stats.total_cards < 50 or validation.stats.total_cards > 80 %}text-red-500{% else %}text-blue-400{% endif %}">
+                    {{ validation.stats.total_cards }}
+                </div>
+                <div class="text-xs text-gray-400">50-80 cartas</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Leader do Deck -->
+    {% if leader %}
+    <div class="mb-6">
+        <h3 class="text-xl font-bold mb-2">Leader</h3>
+        <div class="bg-gray-700 p-4 rounded-lg flex flex-col sm:flex-row items-start gap-4">
+            {% if leader.image_url %}
+            <div class="w-32 flex-shrink-0">
+                <img src="{{ leader.image_url }}" alt="{{ leader.name }}" class="w-full rounded shadow-lg">
+            </div>
+            {% endif %}
+            
+            <div class="flex-1">
+                <h4 class="text-lg font-bold {% if leader.color == 'Purple' %}text-purple-400{% elif leader.color == 'Blue' %}text-blue-400{% elif leader.color == 'Red' %}text-red-400{% elif leader.color == 'Green' %}text-green-400{% elif leader.color == 'Gold' %}text-yellow-400{% endif %}">
+                    {{ leader.name }}
+                </h4>
+                <div class="text-xs text-purple-400 mb-2">{{ leader.card_type }}</div>
+                
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <div>
+                        <span class="text-gray-400">Cor:</span>
+                        <span class="{% if leader.color == 'Purple' %}text-purple-400{% elif leader.color == 'Blue' %}text-blue-400{% elif leader.color == 'Red' %}text-red-400{% elif leader.color == 'Green' %}text-green-400{% elif leader.color == 'Gold' %}text-yellow-400{% endif %}">
+                            {{ leader.color }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Custo:</span>
+                        <span class="text-yellow-400">{{ leader.cost }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Poder:</span>
+                        <span class="text-red-400">{{ leader.power }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Raridade:</span>
+                        <span class="{% if leader.rarity == 'Super Rare' %}text-yellow-400{% elif leader.rarity == 'Rare' %}text-purple-400{% elif leader.rarity == 'Uncommon' %}text-blue-400{% else %}text-gray-400{% endif %}">
+                            {{ leader.rarity }}
+                        </span>
+                    </div>
+                </div>
+                
+                {% if leader.text %}
+                <div class="mb-2">
+                    <span class="text-gray-400">Efeito:</span>
+                    <p class="text-gray-300">{{ leader.text }}</p>
+                </div>
+                {% endif %}
+                
+                {% if leader.flavor_text %}
+                <div>
+                    <span class="text-gray-400">Flavor Text:</span>
+                    <p class="text-gray-400 italic">{{ leader.flavor_text }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Estatísticas e análise -->
+    <div class="mb-6">
+        <h3 class="text-xl font-bold mb-2">Análise do Deck</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Curva de Mana -->
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <h4 class="font-medium mb-3">Curva de Mana</h4>
+                <div class="h-48 flex items-end space-x-1" id="manaCurve">
+                    <!-- Curva de mana será renderizada via JavaScript -->
+                </div>
+                <div class="flex text-xs text-gray-400 space-x-1 mt-1">
+                    <div class="flex-1 text-center">0</div>
+                    <div class="flex-1 text-center">1</div>
+                    <div class="flex-1 text-center">2</div>
+                    <div class="flex-1 text-center">3</div>
+                    <div class="flex-1 text-center">4</div>
+                    <div class="flex-1 text-center">5</div>
+                    <div class="flex-1 text-center">6</div>
+                    <div class="flex-1 text-center">7+</div>
+                </div>
+            </div>
+            
+            <!-- Distribuição por Tipo e Cor -->
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <h4 class="font-medium mb-3">Distribuição por Tipo</h4>
+                <div id="typeDistribution" class="space-y-2 mb-4">
+                    <!-- Distribuição por tipo será renderizada via JavaScript -->
+                </div>
+                
+                <h4 class="font-medium mb-3 mt-6">Distribuição por Cor</h4>
+                <div id="colorDistribution" class="space-y-2">
+                    <!-- Distribuição por cor será renderizada via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Listas de cartas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Deck Principal -->
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h3 class="font-medium mb-2">Deck Principal</h3>
+            <div class="h-96 overflow-y-auto bg-gray-800 rounded-lg p-2">
+                {% for card in cards if not card.is_money and not card.is_heat %}
+                <div class="flex justify-between items-center p-2 mb-1 border border-gray-600 rounded hover:bg-gray-700">
+                    <div>
+                        <div class="font-medium {% if card.color == 'Purple' %}text-purple-400{% elif card.color == 'Blue' %}text-blue-400{% elif card.color == 'Red' %}text-red-400{% elif card.color == 'Green' %}text-green-400{% elif card.color == 'Gold' %}text-yellow-400{% endif %}">
+                            {{ card.name }} <span class="text-xs text-gray-400">x{{ card.quantity }}</span>
+                        </div>
+                        <div class="text-xs">
+                            <span class="{% if card.card_type == 'Combat' %}text-green-400{% elif card.card_type == 'Support' %}text-blue-400{% elif card.card_type == 'Equipment' %}text-yellow-400{% elif card.card_type == 'Action' %}text-red-400{% endif %}">
+                                {{ card.card_type }}
+                            </span>
+                            {% if card.cost %} • Custo: {{ card.cost }}{% endif %}
+                            {% if card.power %} • Poder: {{ card.power }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Deck de Dinheiro -->
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h3 class="font-medium mb-2 text-yellow-400">Deck de Dinheiro</h3>
+            <div class="h-96 overflow-y-auto bg-gray-800 rounded-lg p-2">
+                {% for card in cards if card.is_money %}
+                <div class="flex justify-between items-center p-2 mb-1 border border-gray-600 rounded hover:bg-gray-700">
+                    <div>
+                        <div class="font-medium {% if card.color == 'Purple' %}text-purple-400{% elif card.color == 'Blue' %}text-blue-400{% elif card.color == 'Red' %}text-red-400{% elif card.color == 'Green' %}text-green-400{% elif card.color == 'Gold' %}text-yellow-400{% endif %}">
+                            {{ card.name }} <span class="text-xs text-gray-400">x{{ card.quantity }}</span>
+                        </div>
+                        <div class="text-xs">
+                            <span class="{% if card.card_type == 'Combat' %}text-green-400{% elif card.card_type == 'Support' %}text-blue-400{% elif card.card_type == 'Equipment' %}text-yellow-400{% elif card.card_type == 'Action' %}text-red-400{% endif %}">
+                                {{ card.card_type }}
+                            </span>
+                            {% if card.cost %} • Custo: {{ card.cost }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Heat Deck -->
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h3 class="font-medium mb-2 text-red-400">Heat Deck</h3>
+            <div class="h-96 overflow-y-auto bg-gray-800 rounded-lg p-2">
+                {% for card in cards if card.is_heat %}
+                <div class="flex justify-between items-center p-2 mb-1 border border-gray-600 rounded hover:bg-gray-700">
+                    <div>
+                        <div class="font-medium {% if card.color == 'Purple' %}text-purple-400{% elif card.color == 'Blue' %}text-blue-400{% elif card.color == 'Red' %}text-red-400{% elif card.color == 'Green' %}text-green-400{% elif card.color == 'Gold' %}text-yellow-400{% endif %}">
+                            {{ card.name }} <span class="text-xs text-gray-400">x{{ card.quantity }}</span>
+                        </div>
+                        <div class="text-xs">
+                            <span class="{% if card.card_type == 'Combat' %}text-green-400{% elif card.card_type == 'Support' %}text-blue-400{% elif card.card_type == 'Equipment' %}text-yellow-400{% elif card.card_type == 'Action' %}text-red-400{% endif %}">
+                                {{ card.card_type }}
+                            </span>
+                            {% if card.cost %} • Custo: {{ card.cost }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados para análises
+    const deckStats = {{ deck.stats|tojson|safe if deck.stats else '{}' }};
+    
+    // Renderizar curva de mana
+    renderManaCurve(deckStats.mana_curve || {});
+    
+    // Renderizar distribuição de tipos
+    renderTypeDistribution(deckStats.card_type_distribution || {});
+    
+    // Renderizar distribuição de cores
+    renderColorDistribution(deckStats.color_distribution || {});
+});
+
+// Função para renderizar a curva de mana
+function renderManaCurve(manaCurve) {
+    const curveElement = document.getElementById('manaCurve');
+    curveElement.innerHTML = '';
+    
+    // Converter o objeto em array para facilitar a renderização
+    const curveData = [
+        { cost: '0', count: manaCurve['0'] || 0 },
+        { cost: '1', count: manaCurve['1'] || 0 },
+        { cost: '2', count: manaCurve['2'] || 0 },
+        { cost: '3', count: manaCurve['3'] || 0 },
+        { cost: '4', count: manaCurve['4'] || 0 },
+        { cost: '5', count: manaCurve['5'] || 0 },
+        { cost: '6', count: manaCurve['6'] || 0 },
+        { cost: '7', count: manaCurve['7'] || 0 }
+    ];
+    
+    // Encontrar o valor máximo para escala
+    const maxCount = Math.max(...curveData.map(d => d.count));
+    
+    curveData.forEach(item => {
+        const height = maxCount > 0 ? Math.max(5, (item.count / maxCount) * 100) : 0;
+        const bar = document.createElement('div');
+        bar.className = 'flex-1 bg-blue-500 rounded-t flex items-end justify-center';
+        bar.style.height = `${height}%`;
+        bar.innerHTML = `<span class="text-xs font-bold">${item.count}</span>`;
+        curveElement.appendChild(bar);
+    });
+}
+
+// Função para renderizar a distribuição de tipos
+function renderTypeDistribution(typeDistribution) {
+    const typeElement = document.getElementById('typeDistribution');
+    typeElement.innerHTML = '';
+    
+    // Converter o objeto em array e ordenar por contagem
+    const typeData = Object.entries(typeDistribution)
+        .map(([type, count]) => ({ type, count }))
+        .sort((a, b) => b.count - a.count);
+    
+    // Total de cartas
+    const totalCards = typeData.reduce((sum, item) => sum + item.count, 0);
+    
+    typeData.forEach(item => {
+        // Determinar classe de cor com base no tipo
+        let colorClass = 'bg-gray-500';
+        if (item.type === 'Combat') colorClass = 'bg-green-500';
+        else if (item.type === 'Support') colorClass = 'bg-blue-500';
+        else if (item.type === 'Action') colorClass = 'bg-red-500';
+        else if (item.type === 'Equipment') colorClass = 'bg-yellow-500';
+        
+        const percentage = Math.round((item.count / totalCards) * 100) || 0;
+        
+        const bar = document.createElement('div');
+        bar.className = 'relative h-6 bg-gray-600 rounded overflow-hidden';
+        bar.innerHTML = `
+            <div class="${colorClass} h-full" style="width: ${percentage}%"></div>
+            <div class="absolute inset-0 flex justify-between items-center px-2">
+                <span class="text-xs font-medium">${item.type}</span>
+                <span class="text-xs font-medium">${item.count} (${percentage}%)</span>
+            </div>
+        `;
+        
+        typeElement.appendChild(bar);
+    });
+}
+
+// Função para renderizar a distribuição de cores
+function renderColorDistribution(colorDistribution) {
+    const colorElement = document.getElementById('colorDistribution');
+    colorElement.innerHTML = '';
+    
+    // Converter o objeto em array e ordenar por contagem
+    const colorData = Object.entries(colorDistribution)
+        .map(([color, count]) => ({ color, count }))
+        .sort((a, b) => b.count - a.count);
+    
+    // Total de cartas
+    const totalCards = colorData.reduce((sum, item) => sum + item.count, 0);
+    
+    colorData.forEach(item => {
+        // Determinar classe de cor
+        let colorClass = 'bg-gray-500';
+        if (item.color === 'Purple') colorClass = 'bg-purple-500';
+        else if (item.color === 'Blue') colorClass = 'bg-blue-500';
+        else if (item.color === 'Red') colorClass = 'bg-red-500';
+        else if (item.color === 'Green') colorClass = 'bg-green-500';
+        else if (item.color === 'Gold') colorClass = 'bg-yellow-500';
+        else if (item.color === 'Colorless') colorClass = 'bg-gray-500';
+        
+        const percentage = Math.round((item.count / totalCards) * 100) || 0;
+        
+        const bar = document.createElement('div');
+        bar.className = 'relative h-6 bg-gray-600 rounded overflow-hidden';
+        bar.innerHTML = `
+            <div class="${colorClass} h-full" style="width: ${percentage}%"></div>
+            <div class="absolute inset-0 flex justify-between items-center px-2">
+                <span class="text-xs font-medium">${item.color}</span>
+                <span class="text-xs font-medium">${item.count} (${percentage}%)</span>
+            </div>
+        `;
+        
+        colorElement.appendChild(bar);
+    });
+}
+
+// Função para confirmar exclusão
+function confirmDelete(deckId) {
+    if (confirm('Tem certeza que deseja excluir este deck?')) {
+        window.location.href = `/decks/${deckId}/delete`;
+    }
+}
+</script>
+{% endblock %}

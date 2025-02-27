@@ -1,0 +1,652 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto bg-gray-800 p-6 rounded-lg">
+    <h2 class="text-2xl font-bold mb-6">{{ deck.name if deck else "Novo Deck" }}</h2>
+    
+    <form method="POST" action="{{ '/decks/' + deck.id + '/edit' if deck else '/decks/new' }}" class="space-y-4" id="deckForm">
+        <!-- Campos básicos do deck -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">ID</label>
+                <input type="text" name="id" value="{{ deck.id if deck else '' }}" 
+                       class="mt-1 w-full p-2 bg-gray-700 rounded" {% if deck %}readonly{% endif %}>
+                <div class="text-xs text-gray-400">ID único do deck. Será gerado automaticamente se vazio.</div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Nome <span class="text-red-500">*</span></label>
+                <input type="text" name="name" value="{{ deck.name if deck else '' }}" required
+                       class="mt-1 w-full p-2 bg-gray-700 rounded">
+            </div>
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium mb-1">Descrição</label>
+            <textarea name="description" class="mt-1 w-full p-2 bg-gray-700 rounded h-20">{{ deck.description if deck else '' }}</textarea>
+        </div>
+        
+        <!-- Seleção do Leader -->
+        <div>
+            <label class="block text-sm font-medium mb-1">Leader <span class="text-red-500">*</span></label>
+            <select name="leader_id" class="mt-1 w-full p-2 bg-gray-700 rounded" required id="leaderSelect">
+                <option value="">Selecione um Leader</option>
+                {% for leader in leaders %}
+                <option value="{{ leader.id }}" 
+                        data-color="{{ leader.color }}"
+                        {% if deck and deck.leader_id == leader.id %}selected{% endif %}>
+                    {{ leader.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Contadores de cartas -->
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h3 class="font-medium mb-2">Contagem de Cartas</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <div class="text-sm text-gray-400">Principal</div>
+                    <div class="text-xl font-bold" id="mainCount">0</div>
+                    <div class="text-xs text-gray-400">40-50 cartas</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-400">Dinheiro</div>
+                    <div class="text-xl font-bold text-yellow-400" id="moneyCount">0</div>
+                    <div class="text-xs text-gray-400">10-30 cartas</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-400">Heat</div>
+                    <div class="text-xl font-bold text-red-400" id="heatCount">0</div>
+                    <div class="text-xs text-gray-400">5 cartas</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-400">Total</div>
+                    <div class="text-xl font-bold text-blue-400" id="totalCount">0</div>
+                    <div class="text-xs text-gray-400">50-80 cartas</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Interface de construção de deck -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Painel de seleção de cartas -->
+            <div class="lg:col-span-1 bg-gray-700 p-4 rounded-lg">
+                <h3 class="font-medium mb-2">Cartas Disponíveis</h3>
+                
+                <!-- Filtros -->
+                <div class="mb-4 space-y-2">
+                    <input type="text" id="cardSearch" placeholder="Buscar cartas..." 
+                           class="w-full p-2 bg-gray-800 rounded">
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="typeFilter" class="p-2 bg-gray-800 rounded">
+                            <option value="">Todos os Tipos</option>
+                            <option value="Leader">Leader</option>
+                            <option value="Combat">Combat</option>
+                            <option value="Action">Action</option>
+                            <option value="Support">Support</option>
+                            <option value="Equipment">Equipment</option>
+                        </select>
+                        
+                        <select id="colorFilter" class="p-2 bg-gray-800 rounded">
+                            <option value="">Todas as Cores</option>
+                            <option value="Purple">Purple</option>
+                            <option value="Blue">Blue</option>
+                            <option value="Red">Red</option>
+                            <option value="Green">Green</option>
+                            <option value="Gold">Gold</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Lista de cartas disponíveis -->
+                <div class="h-96 overflow-y-auto bg-gray-800 rounded-lg p-2" id="availableCards">
+                    {% for card in cards %}
+                    <div class="card-item mb-2 p-2 border border-gray-600 rounded hover:bg-gray-700 cursor-pointer flex justify-between items-center"
+                         data-id="{{ card.id }}"
+                         data-name="{{ card.name }}"
+                         data-type="{{ card.card_type }}"
+                         data-color="{{ card.color or 'Colorless' }}"
+                         data-cost="{{ card.cost }}"
+                         data-power="{{ card.power }}"
+                         data-rarity="{{ card.rarity }}"
+                         data-image="{{ card.image_url or '' }}">
+                        
+                        <div>
+                            <div class="font-medium">{{ card.name }}</div>
+                            <div class="text-xs">
+                                <span class="{% if card.card_type == 'Combat' %}text-green-400{% elif card.card_type == 'Support' %}text-blue-400{% elif card.card_type == 'Equipment' %}text-yellow-400{% elif card.card_type == 'Leader' %}text-purple-400{% elif card.card_type == 'Action' %}text-red-400{% endif %}">
+                                    {{ card.card_type }}
+                                </span>
+                                {% if card.color %}
+                                <span class="ml-2 {% if card.color == 'Purple' %}text-purple-400{% elif card.color == 'Blue' %}text-blue-400{% elif card.color == 'Red' %}text-red-400{% elif card.color == 'Green' %}text-green-400{% elif card.color == 'Gold' %}text-yellow-400{% endif %}">
+                                    {{ card.color }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-1">
+                            {% if card.card_type != 'Leader' %}
+                            <button type="button" class="add-card px-2 py-1 text-xs bg-blue-600 rounded" 
+                                    data-id="{{ card.id }}" data-type="main">+</button>
+                            
+                            <button type="button" class="add-card px-2 py-1 text-xs bg-yellow-600 rounded" 
+                                    data-id="{{ card.id }}" data-type="money">$</button>
+                            
+                            <button type="button" class="add-card px-2 py-1 text-xs bg-red-600 rounded" 
+                                    data-id="{{ card.id }}" data-type="heat">H</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Painel de cartas selecionadas -->
+            <div class="lg:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Deck Principal -->
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <h3 class="font-medium mb-2">Deck Principal</h3>
+                        <div class="h-64 overflow-y-auto bg-gray-800 rounded-lg p-2" id="mainDeck">
+                            <!-- Cartas do deck principal serão inseridas aqui via JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Deck de Dinheiro -->
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <h3 class="font-medium mb-2 text-yellow-400">Deck de Dinheiro</h3>
+                        <div class="h-64 overflow-y-auto bg-gray-800 rounded-lg p-2" id="moneyDeck">
+                            <!-- Cartas de dinheiro serão inseridas aqui via JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Heat Deck -->
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <h3 class="font-medium mb-2 text-red-400">Heat Deck</h3>
+                        <div class="h-64 overflow-y-auto bg-gray-800 rounded-lg p-2" id="heatDeck">
+                            <!-- Cartas de heat serão inseridas aqui via JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Análise do Deck -->
+                <div class="mt-4 bg-gray-700 p-4 rounded-lg">
+                    <h3 class="font-medium mb-2">Análise do Deck</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Curva de Mana -->
+                        <div class="bg-gray-800 p-3 rounded-lg">
+                            <h4 class="text-sm font-medium mb-2">Curva de Mana</h4>
+                            <div class="h-32 flex items-end space-x-1" id="manaCurve">
+                                <!-- Barras da curva de mana serão inseridas aqui via JS -->
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                                <div class="flex-1 h-0 bg-blue-500 rounded-t"></div>
+                            </div>
+                            <div class="flex text-xs text-gray-400 space-x-1 mt-1">
+                                <div class="flex-1 text-center">0</div>
+                                <div class="flex-1 text-center">1</div>
+                                <div class="flex-1 text-center">2</div>
+                                <div class="flex-1 text-center">3</div>
+                                <div class="flex-1 text-center">4</div>
+                                <div class="flex-1 text-center">5</div>
+                                <div class="flex-1 text-center">6</div>
+                                <div class="flex-1 text-center">7+</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Distribuição de Tipos -->
+                        <div class="bg-gray-800 p-3 rounded-lg">
+                            <h4 class="text-sm font-medium mb-2">Distribuição de Tipos</h4>
+                            <div id="typeDistribution" class="space-y-2">
+                                <!-- Barras de distribuição de tipos serão inseridas aqui via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Campo oculto para armazenar os dados das cartas do deck em JSON -->
+        <input type="hidden" name="cards_json" id="cardsJson" value="">
+        
+        <!-- Validação e Botões -->
+        <div class="mt-4 p-4 rounded-lg bg-gray-700 hidden" id="validationErrors">
+            <h3 class="font-medium text-red-400 mb-2">Erros de Validação</h3>
+            <ul class="list-disc pl-5 text-red-300" id="errorsList">
+            </ul>
+        </div>
+        
+        <div class="flex justify-end space-x-4 mt-6">
+            <button type="button" onclick="window.location.href='/decks'" 
+                    class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500">
+                Cancelar
+            </button>
+            <button type="button" onclick="validateAndSubmit()" 
+                    class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
+                Salvar
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Estrutura global para armazenar as cartas do deck
+const deckCards = {
+    main: [],
+    money: [],
+    heat: []
+};
+
+// Cards no deck atual (se estiver editando)
+{% if deck_cards is defined and deck_cards %}
+    // Inicializar com as cartas do deck existente
+    {% for card in deck_cards %}
+        {% if card.is_heat %}
+            deckCards.heat.push({
+                id: "{{ card.id }}",
+                name: "{{ card.name }}",
+                type: "{{ card.card_type }}",
+                color: "{{ card.color or 'Colorless' }}",
+                cost: {{ card.cost or 0 }},
+                power: {{ card.power or 0 }},
+                quantity: {{ card.quantity }},
+                image: "{{ card.image_url or '' }}"
+            });
+        {% elif card.is_money %}
+            deckCards.money.push({
+                id: "{{ card.id }}",
+                name: "{{ card.name }}",
+                type: "{{ card.card_type }}",
+                color: "{{ card.color or 'Colorless' }}",
+                cost: {{ card.cost or 0 }},
+                power: {{ card.power or 0 }},
+                quantity: {{ card.quantity }},
+                image: "{{ card.image_url or '' }}"
+            });
+        {% else %}
+            deckCards.main.push({
+                id: "{{ card.id }}",
+                name: "{{ card.name }}",
+                type: "{{ card.card_type }}",
+                color: "{{ card.color or 'Colorless' }}",
+                cost: {{ card.cost or 0 }},
+                power: {{ card.power or 0 }},
+                quantity: {{ card.quantity }},
+                image: "{{ card.image_url or '' }}"
+            });
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+// Função para atualizar a interface do deck
+function updateDeckUI() {
+    // Atualizar decks
+    updateDeckSection('main');
+    updateDeckSection('money');
+    updateDeckSection('heat');
+    
+    // Atualizar contadores
+    updateCardCounts();
+    
+    // Atualizar análises
+    updateDeckAnalysis();
+    
+    // Atualizar o campo JSON para o formulário
+    updateCardsJson();
+}
+
+// Função para atualizar uma seção específica do deck
+function updateDeckSection(deckType) {
+    const deckElement = document.getElementById(`${deckType}Deck`);
+    deckElement.innerHTML = '';
+    
+    deckCards[deckType].forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'flex justify-between items-center p-2 mb-1 border border-gray-600 rounded hover:bg-gray-700';
+        
+        // Determinar classe de cor com base no tipo/cor da carta
+        let colorClass = 'text-white';
+        if (card.color === 'Purple') colorClass = 'text-purple-400';
+        else if (card.color === 'Blue') colorClass = 'text-blue-400';
+        else if (card.color === 'Red') colorClass = 'text-red-400';
+        else if (card.color === 'Green') colorClass = 'text-green-400';
+        else if (card.color === 'Gold') colorClass = 'text-yellow-400';
+        
+        cardElement.innerHTML = `
+            <div>
+                <div class="font-medium ${colorClass}">${card.name} <span class="text-xs text-gray-400">x${card.quantity}</span></div>
+                <div class="text-xs">${card.type} ${card.cost ? `• Custo: ${card.cost}` : ''} ${card.power ? `• Poder: ${card.power}` : ''}</div>
+            </div>
+            <div class="flex space-x-1">
+                <button type="button" class="text-xs px-2 py-1 bg-green-600 rounded" onclick="updateCardQuantity('${deckType}', '${card.id}', 1)">+</button>
+                <button type="button" class="text-xs px-2 py-1 bg-red-600 rounded" onclick="updateCardQuantity('${deckType}', '${card.id}', -1)">-</button>
+            </div>
+        `;
+        
+        deckElement.appendChild(cardElement);
+    });
+}
+
+// Função para atualizar os contadores de cartas
+function updateCardCounts() {
+    // Contar cartas principais
+    const mainCount = deckCards.main.reduce((total, card) => total + card.quantity, 0);
+    document.getElementById('mainCount').textContent = mainCount;
+    
+    // Contar cartas de dinheiro
+    const moneyCount = deckCards.money.reduce((total, card) => total + card.quantity, 0);
+    document.getElementById('moneyCount').textContent = moneyCount;
+    
+    // Contar cartas de heat
+    const heatCount = deckCards.heat.reduce((total, card) => total + card.quantity, 0);
+    document.getElementById('heatCount').textContent = heatCount;
+    
+    // Contar total
+    const totalCount = mainCount + moneyCount + heatCount;
+    document.getElementById('totalCount').textContent = totalCount;
+    
+    // Aplicar classes de aviso/erro baseadas nas regras
+    document.getElementById('mainCount').className = 'text-xl font-bold ' + 
+        (mainCount < 40 || mainCount > 50 ? 'text-red-500' : 'text-white');
+    
+    document.getElementById('moneyCount').className = 'text-xl font-bold ' + 
+        (moneyCount < 10 || moneyCount > 30 ? 'text-red-500' : 'text-yellow-400');
+    
+    document.getElementById('heatCount').className = 'text-xl font-bold ' + 
+        (heatCount !== 5 ? 'text-red-500' : 'text-red-400');
+    
+    document.getElementById('totalCount').className = 'text-xl font-bold ' + 
+        (totalCount < 50 || totalCount > 80 ? 'text-red-500' : 'text-blue-400');
+}
+
+// Função para atualizar as análises do deck
+function updateDeckAnalysis() {
+    // Curva de mana
+    const manaCurve = [0, 0, 0, 0, 0, 0, 0, 0]; // Custos 0-7+
+    
+    deckCards.main.forEach(card => {
+        const cost = Math.min(card.cost || 0, 7); // Agrupar 7+
+        manaCurve[cost] += card.quantity;
+    });
+    
+    // Encontrar o valor máximo para escala
+    const maxCount = Math.max(...manaCurve);
+    
+    // Atualizar barras da curva de mana
+    const curveElement = document.getElementById('manaCurve');
+    curveElement.innerHTML = '';
+    
+    manaCurve.forEach((count, index) => {
+        const height = maxCount > 0 ? Math.max(5, (count / maxCount) * 100) : 0;
+        const bar = document.createElement('div');
+        bar.className = 'flex-1 bg-blue-500 rounded-t flex items-end justify-center';
+        bar.style.height = `${height}%`;
+        bar.innerHTML = `<span class="text-xs font-bold">${count}</span>`;
+        curveElement.appendChild(bar);
+    });
+    
+    // Distribuição de tipos
+    const typeDistribution = {};
+    
+    deckCards.main.forEach(card => {
+        if (typeDistribution[card.type]) {
+            typeDistribution[card.type] += card.quantity;
+        } else {
+            typeDistribution[card.type] = card.quantity;
+        }
+    });
+    
+    // Atualizar distribuição de tipos
+    const typeElement = document.getElementById('typeDistribution');
+    typeElement.innerHTML = '';
+    
+    const mainCount = deckCards.main.reduce((total, card) => total + card.quantity, 0);
+    
+    Object.entries(typeDistribution).forEach(([type, count]) => {
+        // Determinar classe de cor com base no tipo
+        let colorClass = 'bg-gray-500';
+        if (type === 'Combat') colorClass = 'bg-green-500';
+        else if (type === 'Support') colorClass = 'bg-blue-500';
+        else if (type === 'Action') colorClass = 'bg-red-500';
+        else if (type === 'Equipment') colorClass = 'bg-yellow-500';
+        
+        const percentage = Math.round((count / mainCount) * 100) || 0;
+        
+        const bar = document.createElement('div');
+        bar.className = 'relative h-6 bg-gray-600 rounded overflow-hidden';
+        bar.innerHTML = `
+            <div class="${colorClass} h-full" style="width: ${percentage}%"></div>
+            <div class="absolute inset-0 flex justify-between items-center px-2">
+                <span class="text-xs font-medium">${type}</span>
+                <span class="text-xs font-medium">${count} (${percentage}%)</span>
+            </div>
+        `;
+        
+        typeElement.appendChild(bar);
+    });
+}
+
+// Função para atualizar a quantidade de uma carta específica
+function updateCardQuantity(deckType, cardId, change) {
+    const cardIndex = deckCards[deckType].findIndex(card => card.id === cardId);
+    
+    if (cardIndex >= 0) {
+        deckCards[deckType][cardIndex].quantity += change;
+        
+        // Se a quantidade chegar a 0, remover a carta
+        if (deckCards[deckType][cardIndex].quantity <= 0) {
+            deckCards[deckType].splice(cardIndex, 1);
+        }
+        
+        // Atualizar a interface
+        updateDeckUI();
+    }
+}
+
+// Função para adicionar uma carta ao deck
+function addCardToDeck(cardId, deckType) {
+    // Buscar informações da carta
+    const cardItem = document.querySelector(`.card-item[data-id="${cardId}"]`);
+    
+    if (!cardItem) return;
+    
+    const card = {
+        id: cardId,
+        name: cardItem.getAttribute('data-name'),
+        type: cardItem.getAttribute('data-type'),
+        color: cardItem.getAttribute('data-color'),
+        cost: parseInt(cardItem.getAttribute('data-cost')) || 0,
+        power: parseInt(cardItem.getAttribute('data-power')) || 0,
+        quantity: 1,
+        image: cardItem.getAttribute('data-image')
+    };
+    
+    // Verificar se já existe no deck
+    const existingCardIndex = deckCards[deckType].findIndex(c => c.id === cardId);
+    
+    if (existingCardIndex >= 0) {
+        // Verificar limite de 3 cópias
+        const currentQuantity = deckCards[deckType][existingCardIndex].quantity;
+        if (currentQuantity < 3) {
+            deckCards[deckType][existingCardIndex].quantity += 1;
+        } else {
+            alert(`Máximo de 3 cópias da carta ${card.name} atingido.`);
+            return;
+        }
+    } else {
+        // Adicionar nova carta
+        deckCards[deckType].push(card);
+    }
+    
+    // Atualizar a interface
+    updateDeckUI();
+}
+
+// Função para atualizar o campo JSON do formulário
+function updateCardsJson() {
+    // Preparar dados para o formulário
+    const formattedCards = [
+        ...deckCards.main.map(card => ({
+            id: card.id,
+            quantity: card.quantity,
+            is_money: false,
+            is_heat: false
+        })),
+        ...deckCards.money.map(card => ({
+            id: card.id,
+            quantity: card.quantity,
+            is_money: true,
+            is_heat: false
+        })),
+        ...deckCards.heat.map(card => ({
+            id: card.id,
+            quantity: card.quantity,
+            is_money: false,
+            is_heat: true
+        }))
+    ];
+    
+    document.getElementById('cardsJson').value = JSON.stringify(formattedCards);
+}
+
+// Função para validar o deck antes de enviar
+function validateAndSubmit() {
+    const errorsList = document.getElementById('errorsList');
+    errorsList.innerHTML = '';
+    
+    // Contadores
+    const mainCount = deckCards.main.reduce((total, card) => total + card.quantity, 0);
+    const moneyCount = deckCards.money.reduce((total, card) => total + card.quantity, 0);
+    const heatCount = deckCards.heat.reduce((total, card) => total + card.quantity, 0);
+    const totalCount = mainCount + moneyCount + heatCount;
+    
+    // Verificar Leader
+    const leaderId = document.getElementById('leaderSelect').value;
+    
+    let isValid = true;
+    
+    // Validar Leader
+    if (!leaderId) {
+        isValid = false;
+        errorsList.innerHTML += '<li>Selecione um Leader para o deck.</li>';
+    }
+    
+    // Validar regras do deck
+    if (mainCount < 40 || mainCount > 50) {
+        isValid = false;
+        errorsList.innerHTML += `<li>O deck principal deve ter entre 40 e 50 cartas. Atual: ${mainCount}</li>`;
+    }
+    
+    if (moneyCount < 10 || moneyCount > 30) {
+        isValid = false;
+        errorsList.innerHTML += `<li>O deck de dinheiro deve ter entre 10 e 30 cartas. Atual: ${moneyCount}</li>`;
+    }
+    
+    if (heatCount !== 5) {
+        isValid = false;
+        errorsList.innerHTML += `<li>O Heat Deck deve ter exatamente 5 cartas. Atual: ${heatCount}</li>`;
+    }
+    
+    if (totalCount < 50 || totalCount > 80) {
+        isValid = false;
+        errorsList.innerHTML += `<li>O total de cartas deve ser entre 50 e 80. Atual: ${totalCount}</li>`;
+    }
+    
+    // Verificar cópias de cartas (máximo 3)
+    const allCards = [...deckCards.main, ...deckCards.money, ...deckCards.heat];
+    const cardCounts = {};
+    
+    allCards.forEach(card => {
+        if (cardCounts[card.id]) {
+            cardCounts[card.id] += card.quantity;
+        } else {
+            cardCounts[card.id] = card.quantity;
+        }
+    });
+    
+    for (const [cardId, count] of Object.entries(cardCounts)) {
+        if (count > 3) {
+            const cardName = allCards.find(card => card.id === cardId)?.name || cardId;
+            isValid = false;
+            errorsList.innerHTML += `<li>Máximo de 3 cópias da carta "${cardName}" permitidas. Atual: ${count}</li>`;
+        }
+    }
+    
+    // Mostrar ou esconder erros
+    const validationErrorsElement = document.getElementById('validationErrors');
+    
+    if (!isValid) {
+        validationErrorsElement.classList.remove('hidden');
+        // Rolar para os erros
+        validationErrorsElement.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        validationErrorsElement.classList.add('hidden');
+        // Enviar formulário
+        document.getElementById('deckForm').submit();
+    }
+}
+
+// Função para filtrar as cartas
+function filterCards() {
+    const searchTerm = document.getElementById('cardSearch').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value;
+    const colorFilter = document.getElementById('colorFilter').value;
+    
+    const cards = document.querySelectorAll('#availableCards .card-item');
+    
+    cards.forEach(card => {
+        const name = card.getAttribute('data-name').toLowerCase();
+        const type = card.getAttribute('data-type');
+        const color = card.getAttribute('data-color');
+        
+        // Aplicar filtros
+        const matchesSearch = name.includes(searchTerm);
+        const matchesType = !typeFilter || type === typeFilter;
+        const matchesColor = !colorFilter || color === colorFilter;
+        
+        // Mostrar ou esconder carta
+        if (matchesSearch && matchesType && matchesColor) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Adicionar eventos após o carregamento da página
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar interface do deck
+    updateDeckUI();
+    
+    // Adicionar eventos aos botões de adicionar carta
+    const addButtons = document.querySelectorAll('.add-card');
+    addButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const cardId = this.getAttribute('data-id');
+            const deckType = this.getAttribute('data-type');
+            addCardToDeck(cardId, deckType);
+        });
+    });
+    
+    // Filtro de busca
+    const cardSearch = document.getElementById('cardSearch');
+    cardSearch.addEventListener('input', filterCards);
+    
+    // Filtros de tipo e cor
+    const typeFilter = document.getElementById('typeFilter');
+    const colorFilter = document.getElementById('colorFilter');
+    
+    typeFilter.addEventListener('change', filterCards);
+    colorFilter.addEventListener('change', filterCards);
+});
+</script>
+{% endblock %}
