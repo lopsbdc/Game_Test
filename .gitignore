@@ -1,0 +1,34 @@
+# Ambiente virtual
+venv/
+env/
+.venv/
+.env
+
+# Arquivos Python compilados
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Arquivos de configuração local
+*.env
+
+# Arquivos de mídia e uploads (caso não queira versioná-los)
+static/images/*
+!static/images/.gitkeep
+
+# Logs e bancos de dados locais
+*.log
+*.sqlite3
+
+# Diretórios de saída
+dist/
+build/
+*.egg-info/
+
+# Arquivos IDE
+.idea/
+.vscode/
+*.swp
+*.swo
