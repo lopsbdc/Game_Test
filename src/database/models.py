@@ -47,3 +47,24 @@ class Deck(Base):
     
     # Optional statistics stored as JSON
     stats = Column(JSON, nullable=True)
+
+class CardTemplate(Base):
+    __tablename__ = "card_templates"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    
+    # Configurações visuais básicas
+    background_type = Column(String, default="color_based")  # color_based, image, gradient
+    overlay_opacity = Column(Integer, default=80)  # Valor de 0-100 para opacidade
+    
+    # Dimensões (padrão Magic)
+    width_mm = Column(Integer, default=63)  # 63mm (padrão Magic)
+    height_mm = Column(Integer, default=88)  # 88mm (padrão Magic)
+    
+    # Zonas em formato JSON
+    zones = Column(JSON, nullable=True)  # Armazenado como JSON com definições de zonas
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

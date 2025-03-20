@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-4 flex justify-between items-center">
+    <h2 class="text-2xl font-bold">Templates de Carta</h2>
+    <button onclick="window.location.href='/templates/new'"
+            class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
+        Novo Template
+    </button>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for template in templates %}
+    <div class="bg-gray-800 p-5 rounded-lg flex flex-col space-y-4 border-2 border-gray-700">
+        <div>
+            <h3 class="font-bold text-lg">{{ template.name }}</h3>
+            <div class="text-xs text-gray-400">ID: {{ template.id }}</div>
+        </div>
+       
+        <div class="text-sm space-y-2">
+            <p>
+                <span class="text-gray-400">Tipo de fundo:</span>
+                <span class="text-blue-400">{{ template.background_type }}</span>
+            </p>
+           
+            <p>
+                <span class="text-gray-400">Dimensões:</span>
+                <span class="text-yellow-400">{{ template.width_mm }}mm × {{ template.height_mm }}mm</span>
+            </p>
+
+            <p>
+                <span class="text-gray-400">Zonas:</span>
+                <span class="text-green-400">{{ template.zones|length if template.zones else 0 }}</span>
+            </p>
+            
+            {% if template.description %}
+            <p class="text-gray-300 text-sm">{{ template.description }}</p>
+            {% endif %}
+        </div>
+
+        <div class="flex space-x-2 mt-auto">
+            <button onclick="window.location.href='/templates/{{ template.id }}'"
+                    class="text-blue-400 hover:text-blue-300">Ver</button>
+            <button onclick="window.location.href='/templates/{{ template.id }}/edit'"
+                    class="text-yellow-400 hover:text-yellow-300">Editar</button>
+            <button onclick="window.location.href='/templates/{{ template.id }}/editor'"
+                    class="text-purple-400 hover:text-purple-300">Editor Visual</button>
+            <button onclick="confirmDelete('{{ template.id }}')"
+                    class="text-red-400 hover:text-red-300">Excluir</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not templates %}
+<div class="text-center py-10">
+    <p class="text-gray-400">Nenhum template encontrado.</p>
+    <p class="mt-2">Clique em "Novo Template" para começar a criar templates para suas cartas.</p>
+</div>
+{% endif %}
+
+<!-- Script para confirmação de exclusão -->
+<script>
+function confirmDelete(templateId) {
+    if (confirm('Tem certeza que deseja excluir este template?')) {
+        window.location.href = `/templates/${templateId}/delete`;
+    }
+}
+</script>
+{% endblock %}

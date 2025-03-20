@@ -1,0 +1,582 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h2 class="text-2xl font-bold mb-4">Editor de Template: {{ template.name }}</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Área de Edição -->
+        <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg">
+            <div id="card-editor" class="relative border-2 border-gray-600 rounded overflow-hidden" 
+                 style="width: {{ template.width_mm * 4 }}px; height: {{ template.height_mm * 4 }}px; background-color: #1a1a1a;">
+                
+                <!-- Zonas serão renderizadas aqui via JavaScript -->
+            </div>
+            
+            <div class="flex justify-between mt-4">
+                <button id="add-zone-btn" class="px-4 py-2 bg-green-600 rounded hover:bg-green-700">
+                    Adicionar Zona
+                </button>
+                <button id="save-template-btn" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">
+                    Salvar Template
+                </button>
+            </div>
+        </div>
+        
+        <!-- Painel de Propriedades -->
+        <div class="bg-gray-800 p-6 rounded-lg">
+            <h3 class="text-xl font-bold mb-4">Propriedades</h3>
+            
+            <div id="zone-properties" class="hidden space-y-4">
+                <div class="flex justify-between">
+                    <h4 class="text-lg font-semibold" id="current-zone-title">Zona</h4>
+                    <button id="delete-zone-btn" class="text-red-500 hover:text-red-400">Excluir</button>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium">ID da Zona</label>
+                    <input type="text" id="zone-id" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium">Tipo</label>
+                    <select id="zone-type" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                        <option value="text">Texto</option>
+                        <option value="image">Imagem</option>
+                        <option value="icon">Ícone</option>
+                    </select>
+                </div>
+                
+                <div id="text-properties" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium">Campo da Carta</label>
+                        <select id="zone-field" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                            <option value="name">Nome</option>
+                            <option value="card_type">Tipo</option>
+                            <option value="cost">Custo</option>
+                            <option value="power">Poder</option>
+                            <option value="text">Texto do Efeito</option>
+                            <option value="flavor_text">Texto de Flavor</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Tamanho da Fonte</label>
+                        <input type="number" id="zone-font-size" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Cor do Texto</label>
+                        <input type="color" id="zone-text-color" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Alinhamento</label>
+                        <select id="zone-text-align" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                            <option value="left">Esquerda</option>
+                            <option value="center">Centro</option>
+                            <option value="right">Direita</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium">Posição e Tamanho</label>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <input type="number" id="zone-x" placeholder="X" class="p-2 bg-gray-700 rounded">
+                        <input type="number" id="zone-y" placeholder="Y" class="p-2 bg-gray-700 rounded">
+                        <input type="number" id="zone-width" placeholder="Largura" class="p-2 bg-gray-700 rounded">
+                        <input type="number" id="zone-height" placeholder="Altura" class="p-2 bg-gray-700 rounded">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium">Z-Index (Camada)</label>
+                    <input type="number" id="zone-z-index" min="1" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                </div>
+                
+                <button id="apply-properties-btn" class="w-full px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
+                    Aplicar Alterações
+                </button>
+            </div>
+            
+            <div id="no-selection" class="text-center py-8 text-gray-400">
+                Selecione uma zona para editar suas propriedades ou adicione uma nova zona.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Visualização do Card -->
+    <div class="mt-8 bg-gray-800 p-6 rounded-lg">
+        <h3 class="text-xl font-bold mb-4">Preview em Cores</h3>
+        
+        <div class="flex flex-wrap gap-6">
+            <!-- Preview com cores diferentes -->
+            <div class="preview-card relative border rounded overflow-hidden" 
+                 style="width: {{ template.width_mm * 3 }}px; height: {{ template.height_mm * 3 }}px; background-color: rgba(66, 135, 245, 0.8);">
+                <div class="w-full text-center mt-2 text-white font-bold">Blue</div>
+                <!-- Zonas serão renderizadas aqui via JavaScript -->
+            </div>
+            
+            <div class="preview-card relative border rounded overflow-hidden" 
+                 style="width: {{ template.width_mm * 3 }}px; height: {{ template.height_mm * 3 }}px; background-color: rgba(245, 66, 66, 0.8);">
+                <div class="w-full text-center mt-2 text-white font-bold">Red</div>
+                <!-- Zonas serão renderizadas aqui via JavaScript -->
+            </div>
+            
+            <div class="preview-card relative border rounded overflow-hidden" 
+                 style="width: {{ template.width_mm * 3 }}px; height: {{ template.height_mm * 3 }}px; background-color: rgba(66, 245, 102, 0.8);">
+                <div class="w-full text-center mt-2 text-white font-bold">Green</div>
+                <!-- Zonas serão renderizadas aqui via JavaScript -->
+            </div>
+            
+            <div class="preview-card relative border rounded overflow-hidden" 
+                 style="width: {{ template.width_mm * 3 }}px; height: {{ template.height_mm * 3 }}px; background-color: rgba(186, 104, 245, 0.8);">
+                <div class="w-full text-center mt-2 text-white font-bold">Purple</div>
+                <!-- Zonas serão renderizadas aqui via JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6">
+        <a href="/templates" class="text-blue-400 hover:text-blue-300">Voltar para Lista</a>
+    </div>
+</div>
+
+<!-- Scripts para o Editor -->
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuração inicial
+    const templateId = '{{ template.id }}';
+    let zones = {{ template.zones|tojson if template and template.zones else '{}' }};
+    let selectedZoneId = null;
+    
+    // Renderizar zonas iniciais
+    renderZones();
+    
+    // Configurar interatividade
+    setupInteractions();
+    
+    // Botão para adicionar nova zona
+    document.getElementById('add-zone-btn').addEventListener('click', addNewZone);
+    
+    // Botão para salvar template
+    document.getElementById('save-template-btn').addEventListener('click', saveTemplate);
+    
+    // Botão para aplicar propriedades
+    document.getElementById('apply-properties-btn').addEventListener('click', applyProperties);
+    
+    // Botão para excluir zona
+    document.getElementById('delete-zone-btn').addEventListener('click', deleteSelectedZone);
+    
+    // Alternar propriedades baseadas no tipo de zona
+    document.getElementById('zone-type').addEventListener('change', function() {
+        togglePropertiesBasedOnType(this.value);
+    });
+    
+    // Função para renderizar zonas no editor e previews
+    function renderZones() {
+        const editor = document.getElementById('card-editor');
+        
+        // Limpar zonas existentes
+        editor.innerHTML = '';
+        
+        // Renderizar cada zona no editor
+        Object.entries(zones).forEach(([id, zone]) => {
+            const zoneElement = document.createElement('div');
+            zoneElement.className = 'absolute border-2 border-blue-500 bg-blue-500/20 p-1 text-xs text-white cursor-move zone-element';
+            zoneElement.style.left = `${zone.x}px`;
+            zoneElement.style.top = `${zone.y}px`;
+            zoneElement.style.width = `${zone.width}px`;
+            zoneElement.style.height = `${zone.height}px`;
+            zoneElement.style.zIndex = zone.z_index || 1;
+            zoneElement.dataset.id = id;
+            
+            // Texto representativo
+            zoneElement.textContent = zone.field_name ? `${id} (${zone.field_name})` : id;
+            
+            // Adicionar ao editor
+            editor.appendChild(zoneElement);
+            
+            // Adicionar evento de clique para seleção
+            zoneElement.addEventListener('click', function() {
+                selectZone(id);
+            });
+        });
+        
+        // Renderizar previews
+        renderPreviews();
+    }
+    
+    // Função para renderizar previews coloridos
+    function renderPreviews() {
+        const previewCards = document.querySelectorAll('.preview-card');
+        
+        previewCards.forEach(preview => {
+            // Preservar o título da cor no topo
+            const title = preview.querySelector('div');
+            const titleHTML = title.outerHTML;
+            
+            // Limpar previews existentes
+            preview.innerHTML = titleHTML;
+            
+            // Renderizar cada zona no preview
+            Object.entries(zones).forEach(([id, zone]) => {
+                const scale = 0.75; // 3/4 do tamanho original
+                const zonePreview = document.createElement('div');
+                zonePreview.className = 'absolute';
+                
+                zonePreview.style.left = `${zone.x * scale}px`;
+                zonePreview.style.top = `${zone.y * scale}px`;
+                zonePreview.style.width = `${zone.width * scale}px`;
+                zonePreview.style.height = `${zone.height * scale}px`;
+                zonePreview.style.zIndex = zone.z_index || 1;
+                
+                // Se for zona de texto, adicionar placeholder
+                if (zone.type === 'text') {
+                    zonePreview.style.color = zone.text_color || '#FFFFFF';
+                    zonePreview.style.fontSize = `${(zone.font_size || 12) * scale}px`;
+                    zonePreview.style.textAlign = zone.text_align || 'left';
+                    zonePreview.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    zonePreview.style.display = 'flex';
+                    zonePreview.style.alignItems = 'center';
+                    zonePreview.style.justifyContent = zone.text_align === 'center' ? 'center' : 'flex-start';
+                    zonePreview.style.padding = '2px';
+                    
+                    // Texto de exemplo baseado no tipo de campo
+                    let sampleText = 'Texto';
+                    if (zone.field_name === 'name') sampleText = 'Nome da Carta';
+                    else if (zone.field_name === 'card_type') sampleText = 'Tipo de Carta';
+                    else if (zone.field_name === 'cost') sampleText = 'Custo';
+                    else if (zone.field_name === 'power') sampleText = 'Poder';
+                    else if (zone.field_name === 'text') sampleText = 'Texto do efeito da carta...';
+                    else if (zone.field_name === 'flavor_text') sampleText = 'Texto de flavor da carta...';
+                    
+                    zonePreview.textContent = sampleText;
+                } else if (zone.type === 'image') {
+                    zonePreview.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                    zonePreview.style.display = 'flex';
+                    zonePreview.style.alignItems = 'center';
+                    zonePreview.style.justifyContent = 'center';
+                    zonePreview.style.color = 'white';
+                    zonePreview.style.fontSize = `${10 * scale}px`;
+                    zonePreview.textContent = 'Imagem';
+                } else {
+                    zonePreview.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                    zonePreview.style.border = '1px dashed rgba(255, 255, 255, 0.5)';
+                }
+                
+                preview.appendChild(zonePreview);
+            });
+        });
+    }
+    
+    // Função para configurar interatividade
+    function setupInteractions() {
+        // Usar interact.js para arrastar e redimensionar
+        interact('.zone-element').draggable({
+            // Manter na área do editor
+            modifiers: [
+                interact.modifiers.restrict({
+                    restriction: '#card-editor',
+                    elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+                })
+            ],
+            
+            listeners: {
+                move(event) {
+                    const target = event.target;
+                    const id = target.dataset.id;
+                    
+                    // Atualizar posição do elemento
+                    const x = (parseFloat(target.style.left) || 0) + event.dx;
+                    const y = (parseFloat(target.style.top) || 0) + event.dy;
+                    
+                    target.style.left = `${x}px`;
+                    target.style.top = `${y}px`;
+                    
+                    // Atualizar dados da zona
+                    if (id && zones[id]) {
+                        zones[id].x = x;
+                        zones[id].y = y;
+                        
+                        // Atualizar formulário se esta for a zona selecionada
+                        if (selectedZoneId === id) {
+                            document.getElementById('zone-x').value = Math.round(x);
+                            document.getElementById('zone-y').value = Math.round(y);
+                        }
+                    }
+                }
+            }
+        }).resizable({
+            // Redimensionar pelos cantos e bordas
+            edges: { left: true, right: true, bottom: true, top: true },
+            
+            // Manter na área do editor
+            modifiers: [
+                interact.modifiers.restrictEdges({
+                    outer: '#card-editor'
+                })
+            ],
+            
+            listeners: {
+                move(event) {
+                    const target = event.target;
+                    const id = target.dataset.id;
+                    
+                    // Atualizar tamanho do elemento
+                    let x = (parseFloat(target.style.left) || 0);
+                    let y = (parseFloat(target.style.top) || 0);
+                    
+                    // Atualizar posição se redimensionando da esquerda ou topo
+                    x += event.deltaRect.left;
+                    y += event.deltaRect.top;
+                    
+                    // Aplicar alterações
+                    target.style.left = `${x}px`;
+                    target.style.top = `${y}px`;
+                    target.style.width = `${event.rect.width}px`;
+                    target.style.height = `${event.rect.height}px`;
+                    
+                    // Atualizar dados da zona
+                    if (id && zones[id]) {
+                        zones[id].x = x;
+                        zones[id].y = y;
+                        zones[id].width = event.rect.width;
+                        zones[id].height = event.rect.height;
+                        
+                        // Atualizar formulário se esta for a zona selecionada
+                        if (selectedZoneId === id) {
+                            document.getElementById('zone-x').value = Math.round(x);
+                            document.getElementById('zone-y').value = Math.round(y);
+                            document.getElementById('zone-width').value = Math.round(event.rect.width);
+                            document.getElementById('zone-height').value = Math.round(event.rect.height);
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Função para selecionar uma zona
+    function selectZone(id) {
+        // Remover seleção anterior
+        const elements = document.querySelectorAll('.zone-element');
+        elements.forEach(el => {
+            el.classList.remove('border-yellow-500');
+            el.classList.add('border-blue-500');
+        });
+        
+        // Marcar a zona selecionada
+        if (id) {
+            const element = document.querySelector(`.zone-element[data-id="${id}"]`);
+            if (element) {
+                element.classList.remove('border-blue-500');
+                element.classList.add('border-yellow-500');
+            }
+            
+            // Atualizar painel de propriedades
+            updatePropertiesPanel(id);
+            
+            // Mostrar painel de propriedades
+            document.getElementById('zone-properties').classList.remove('hidden');
+            document.getElementById('no-selection').classList.add('hidden');
+        } else {
+            // Esconder painel de propriedades se nenhuma zona selecionada
+            document.getElementById('zone-properties').classList.add('hidden');
+            document.getElementById('no-selection').classList.remove('hidden');
+        }
+        
+        selectedZoneId = id;
+    }
+    
+    // Função para atualizar o painel de propriedades
+    function updatePropertiesPanel(id) {
+        const zone = zones[id];
+        if (!zone) return;
+        
+        // Atualizar título
+        document.getElementById('current-zone-title').textContent = `Zona: ${id}`;
+        
+        // Preencher campos
+        document.getElementById('zone-id').value = id;
+        document.getElementById('zone-type').value = zone.type || 'text';
+        document.getElementById('zone-x').value = Math.round(zone.x);
+        document.getElementById('zone-y').value = Math.round(zone.y);
+        document.getElementById('zone-width').value = Math.round(zone.width);
+        document.getElementById('zone-height').value = Math.round(zone.height);
+        document.getElementById('zone-z-index').value = zone.z_index || 1;
+        
+        // Campos específicos para texto
+        if (zone.type === 'text') {
+            document.getElementById('zone-field').value = zone.field_name || 'name';
+            document.getElementById('zone-font-size').value = zone.font_size || 12;
+            document.getElementById('zone-text-color').value = zone.text_color || '#FFFFFF';
+            document.getElementById('zone-text-align').value = zone.text_align || 'left';
+            
+            // Mostrar propriedades de texto
+            document.getElementById('text-properties').classList.remove('hidden');
+        } else {
+            // Esconder propriedades de texto para outros tipos
+            document.getElementById('text-properties').classList.add('hidden');
+        }
+    }
+    
+    // Função para aplicar alterações de propriedades
+    function applyProperties() {
+        if (!selectedZoneId) return;
+        
+        // Coletar novos valores
+        const newId = document.getElementById('zone-id').value;
+        const type = document.getElementById('zone-type').value;
+        const x = parseInt(document.getElementById('zone-x').value);
+        const y = parseInt(document.getElementById('zone-y').value);
+        const width = parseInt(document.getElementById('zone-width').value);
+        const height = parseInt(document.getElementById('zone-height').value);
+        const zIndex = parseInt(document.getElementById('zone-z-index').value);
+        
+        // Valores específicos para texto
+        let properties = {
+            type,
+            x,
+            y,
+            width,
+            height,
+            z_index: zIndex
+        };
+        
+        if (type === 'text') {
+            properties.field_name = document.getElementById('zone-field').value;
+            properties.font_size = parseInt(document.getElementById('zone-font-size').value);
+            properties.text_color = document.getElementById('zone-text-color').value;
+            properties.text_align = document.getElementById('zone-text-align').value;
+        }
+        
+        // Se o ID mudou, precisamos criar uma nova entrada e excluir a antiga
+        if (newId !== selectedZoneId) {
+            // Verificar se o novo ID já existe
+            if (zones[newId]) {
+                alert('Já existe uma zona com este ID. Escolha outro ID.');
+                return;
+            }
+            
+            // Criar nova entrada
+            zones[newId] = properties;
+            
+            // Excluir antiga
+            delete zones[selectedZoneId];
+            
+            // Atualizar ID selecionado
+            selectedZoneId = newId;
+        } else {
+            // Atualizar propriedades da zona existente
+            zones[selectedZoneId] = properties;
+        }
+        
+        // Re-renderizar tudo
+        renderZones();
+        
+        // Manter a nova zona selecionada
+        selectZone(selectedZoneId);
+    }
+    
+    // Função para adicionar nova zona
+    function addNewZone() {
+        // Gerar ID único
+        let id = 'zone_' + Object.keys(zones).length;
+        
+        // Garantir que o ID seja único
+        while (zones[id]) {
+            id = 'zone_' + Math.floor(Math.random() * 1000);
+        }
+        
+        // Criar nova zona com valores padrão
+        zones[id] = {
+            type: 'text',
+            x: 20,
+            y: 20,
+            width: 100,
+            height: 30,
+            z_index: 1,
+            field_name: 'name',
+            font_size: 12,
+            text_color: '#FFFFFF',
+            text_align: 'left'
+        };
+        
+        // Renderizar e selecionar nova zona
+        renderZones();
+        selectZone(id);
+    }
+    
+    // Função para excluir zona selecionada
+    function deleteSelectedZone() {
+        if (!selectedZoneId) return;
+        
+        // Confirmar exclusão
+        if (confirm(`Tem certeza que deseja excluir a zona "${selectedZoneId}"?`)) {
+            // Excluir zona
+            delete zones[selectedZoneId];
+            
+            // Re-renderizar
+            renderZones();
+            
+            // Remover seleção
+            selectZone(null);
+        }
+    }
+    
+    // Função para alternar propriedades baseadas no tipo
+    function togglePropertiesBasedOnType(type) {
+        if (type === 'text') {
+            document.getElementById('text-properties').classList.remove('hidden');
+        } else {
+            document.getElementById('text-properties').classList.add('hidden');
+        }
+    }
+    
+    // Função para salvar o template
+    function saveTemplate() {
+        // Mostrar indicador de carregamento
+        const saveButton = document.getElementById('save-template-btn');
+        const originalText = saveButton.textContent;
+        saveButton.textContent = 'Salvando...';
+        saveButton.disabled = true;
+        
+        // Enviar dados para o servidor
+        fetch(`/templates/${templateId}/zones`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                zones: zones
+            }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao salvar template');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Template salvo com sucesso!');
+            } else {
+                alert('Erro ao salvar: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao salvar o template. Tente novamente.');
+        })
+        .finally(() => {
+            // Restaurar botão
+            saveButton.textContent = originalText;
+            saveButton.disabled = false;
+        });
+    }
+});
+</script>
+{% endblock %}

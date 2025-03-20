@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-gray-800 p-6 rounded-lg">
+    <h2 class="text-2xl font-bold mb-6">{{ template.name if template else "Novo Template" }}</h2>
+    
+    <form method="POST" action="{{ '/templates/' + template.id + '/edit' if template else '/templates/new' }}" class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium">ID</label>
+            <input type="text" name="id" value="{{ template.id if template else '' }}" required
+                   class="mt-1 w-full p-2 bg-gray-700 rounded" {% if template %}readonly{% endif %}>
+        </div>
+ 
+        <div>
+            <label class="block text-sm font-medium">Nome</label>
+            <input type="text" name="name" value="{{ template.name if template else '' }}" required
+                   class="mt-1 w-full p-2 bg-gray-700 rounded">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Descrição</label>
+            <textarea name="description" class="mt-1 w-full p-2 bg-gray-700 rounded h-24">{{ template.description if template else '' }}</textarea>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Tipo de Fundo</label>
+            <select name="background_type" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                <option value="color_based" {% if template and template.background_type == 'color_based' %}selected{% endif %}>Baseado na Cor</option>
+                <option value="image" {% if template and template.background_type == 'image' %}selected{% endif %}>Imagem</option>
+                <option value="gradient" {% if template and template.background_type == 'gradient' %}selected{% endif %}>Gradiente</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Opacidade do Overlay (0-100)</label>
+            <input type="range" name="overlay_opacity" min="0" max="100" step="5" 
+                  value="{{ template.overlay_opacity if template else '80' }}"
+                  class="mt-1 w-full bg-gray-700 rounded">
+            <div class="flex justify-between text-xs text-gray-400">
+                <span>0</span>
+                <span>50</span>
+                <span>100</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium">Largura (mm)</label>
+                <input type="number" name="width_mm" value="{{ template.width_mm if template else '63' }}" 
+                       class="mt-1 w-full p-2 bg-gray-700 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium">Altura (mm)</label>
+                <input type="number" name="height_mm" value="{{ template.height_mm if template else '88' }}" 
+                       class="mt-1 w-full p-2 bg-gray-700 rounded">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">Zonas (JSON)</label>
+            <textarea name="zones" class="mt-1 w-full p-2 bg-gray-700 rounded h-64 font-mono text-sm">{{ template.zones|tojson if template and template.zones else '{}' }}</textarea>
+            <p class="text-xs text-gray-400 mt-1">Edição avançada de zonas. Recomendamos usar o Editor Visual após salvar o template.</p>
+        </div>
+ 
+        <div class="flex justify-end space-x-4 mt-6">
+            <button type="button" onclick="window.location.href='/templates'" 
+                    class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500">
+                Cancelar
+            </button>
+            <button type="submit" 
+                    class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
+                Salvar
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

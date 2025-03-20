@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg">
+    <div class="mb-6 flex justify-between items-center">
+        <h2 class="text-2xl font-bold">{{ template.name }}</h2>
+        <div>
+            <button onclick="window.location.href='/templates/{{ template.id }}/edit'" 
+                    class="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-700 mr-2">
+                Editar
+            </button>
+            <button onclick="window.location.href='/templates/{{ template.id }}/editor'" 
+                    class="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700">
+                Editor Visual
+            </button>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+            <div>
+                <h3 class="text-lg font-semibold">Informações Básicas</h3>
+                <div class="mt-2 bg-gray-700 p-4 rounded">
+                    <p><span class="font-medium">ID:</span> {{ template.id }}</p>
+                    <p><span class="font-medium">Nome:</span> {{ template.name }}</p>
+                    <p><span class="font-medium">Tipo de Fundo:</span> {{ template.background_type }}</p>
+                    <p><span class="font-medium">Opacidade:</span> {{ template.overlay_opacity }}%</p>
+                    <p><span class="font-medium">Dimensões:</span> {{ template.width_mm }}mm × {{ template.height_mm }}mm</p>
+                </div>
+            </div>
+            
+            {% if template.description %}
+            <div>
+                <h3 class="text-lg font-semibold">Descrição</h3>
+                <div class="mt-2 bg-gray-700 p-4 rounded">
+                    <p>{{ template.description }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div>
+                <h3 class="text-lg font-semibold">Zonas</h3>
+                <div class="mt-2 bg-gray-700 p-4 rounded">
+                    {% if template.zones %}
+                    <ul class="list-disc pl-5 space-y-2">
+                        {% for key, zone in template.zones.items() %}
+                        <li>
+                            <strong>{{ key }}</strong><br>
+                            <span class="text-sm">Tipo: {{ zone.type }}</span><br>
+                            <span class="text-sm">Posição: ({{ zone.x }}, {{ zone.y }})</span><br>
+                            <span class="text-sm">Tamanho: {{ zone.width }}×{{ zone.height }}</span>
+                            {% if zone.field_name %}
+                            <br><span class="text-sm">Campo: {{ zone.field_name }}</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-gray-400">Sem zonas definidas. Use o Editor Visual para adicionar zonas.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <h3 class="text-lg font-semibold mb-2">Preview do Template</h3>
+            <div class="template-preview-container">
+                <div class="template-preview relative border-2 border-gray-600 rounded overflow-hidden" 
+                     style="width: {{ template.width_mm * 4 }}px; height: {{ template.height_mm * 4 }}px; background-color: rgba(66, 135, 245, 0.8);">
+                    
+                    {% if template.zones %}
+                        {% for key, zone in template.zones.items() %}
+                        <div class="absolute text-white overflow-hidden" 
+                             style="left: {{ zone.x }}px; top: {{ zone.y }}px; width: {{ zone.width }}px; height: {{ zone.height }}px; z-index: {{ zone.z_index or 1 }}; border: 1px dashed rgba(255,255,255,0.5);">
+                            
+                            {% if zone.type == 'text' %}
+                                <div class="text-center h-full flex items-center justify-center"
+                                     style="font-size: {{ zone.font_size }}px; text-align: {{ zone.text_align or 'center' }}; color: {{ zone.text_color or 'white' }};">
+                                    {{ zone.field_name or key }}
+                                </div>
+                            {% elif zone.type == 'image' %}
+                                <div class="bg-gray-600 bg-opacity-50 h-full flex items-center justify-center">
+                                    <span>Imagem: {{ key }}</span>
+                                </div>
+                            {% else %}
+                                <div class="bg-gray-600 bg-opacity-50 h-full flex items-center justify-center">
+                                    {{ key }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6">
+        <a href="/templates" class="text-blue-400 hover:text-blue-300">Voltar para Lista</a>
+    </div>
+</div>
+{% endblock %}

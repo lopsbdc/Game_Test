@@ -108,3 +108,42 @@ class DeckStats(BaseModel):
     mana_curve: Dict[str, int]
     color_distribution: Dict[str, int]
     card_type_distribution: Dict[str, int]
+
+
+class ZoneBase(BaseModel):
+    x: int
+    y: int
+    width: int
+    height: int
+    type: str  # "text", "image", "icon", etc.
+    z_index: Optional[int] = 1  # Ordem de camada
+    
+    # Campos opcionais para zonas de texto
+    font_size: Optional[int] = None
+    font_family: Optional[str] = None
+    text_align: Optional[str] = None
+    text_color: Optional[str] = None
+    field_name: Optional[str] = None  # Campo da carta a ser usado (name, text, etc.)
+
+# Esquema base para CardTemplate
+class CardTemplateBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    background_type: str = "color_based"
+    overlay_opacity: int = 80  # 0-100
+    width_mm: int = 63
+    height_mm: int = 88
+    zones: Optional[Dict[str, Any]] = None
+
+# Esquema para criação de CardTemplate
+class CardTemplateCreate(CardTemplateBase):
+    id: str
+
+# Esquema completo para CardTemplate
+class CardTemplate(CardTemplateBase):
+    id: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
