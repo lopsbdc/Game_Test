@@ -51,6 +51,8 @@
                     <select id="zone-type" class="mt-1 w-full p-2 bg-gray-700 rounded">
                         <option value="text">Texto</option>
                         <option value="image">Imagem</option>
+                        <option value="rectangle">Retângulo</option>
+                        <option value="circle">Círculo</option>
                         <option value="icon">Ícone</option>
                     </select>
                 </div>
@@ -101,6 +103,34 @@
                 <div>
                     <label class="block text-sm font-medium">Z-Index (Camada)</label>
                     <input type="number" id="zone-z-index" min="1" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium">Opacidade</label>
+                        <input type="range" id="zone-opacity" min="0" max="1" step="0.1" value="1.0" 
+                               class="mt-1 w-full bg-gray-700 rounded">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Cor de Fundo</label>
+                        <input type="color" id="zone-background-color" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Cor da Borda</label>
+                        <input type="color" id="zone-border-color" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Largura da Borda (px)</label>
+                        <input type="number" id="zone-border-width" min="0" value="0" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                    </div>
+                    
+                    <div id="circle-properties" class="hidden">
+                        <label class="block text-sm font-medium">Raio da Borda (px)</label>
+                        <input type="number" id="zone-border-radius" min="0" value="0" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                    </div>
                 </div>
                 
                 <button id="apply-properties-btn" class="w-full px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
@@ -193,16 +223,55 @@ document.addEventListener('DOMContentLoaded', function() {
         // Renderizar cada zona no editor
         Object.entries(zones).forEach(([id, zone]) => {
             const zoneElement = document.createElement('div');
-            zoneElement.className = 'absolute border-2 border-blue-500 bg-blue-500/20 p-1 text-xs text-white cursor-move zone-element';
+            
+            // Classe base para todas as zonas
+            zoneElement.className = 'absolute border-2 border-blue-500 p-1 text-xs text-white cursor-move zone-element';
+            
+            // Aplicar estilos comuns
             zoneElement.style.left = `${zone.x}px`;
             zoneElement.style.top = `${zone.y}px`;
             zoneElement.style.width = `${zone.width}px`;
             zoneElement.style.height = `${zone.height}px`;
             zoneElement.style.zIndex = zone.z_index || 1;
+            zoneElement.style.opacity = zone.opacity || 1.0;
+            
+            // Aplicar estilos específicos por tipo
+            if (zone.background_color) {
+                zoneElement.style.backgroundColor = zone.background_color;
+            } else {
+                zoneElement.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'; // Azul semi-transparente default
+            }
+            
+            if (zone.border_color) {
+                zoneElement.style.borderColor = zone.border_color;
+            }
+            
+            if (zone.border_width !== undefined) {
+                zoneElement.style.borderWidth = `${zone.border_width}px`;
+            }
+            
+            // Aplicar raio da borda para círculos
+            if (zone.type === 'circle' || zone.border_radius) {
+                const radius = zone.border_radius || Math.min(zone.width, zone.height) / 2;
+                zoneElement.style.borderRadius = `${radius}px`;
+                
+                if (zone.type === 'circle') {
+                    // Para círculos perfeitos, garantir que width = height
+                    const size = Math.min(zone.width, zone.height);
+                    zoneElement.style.width = `${size}px`;
+                    zoneElement.style.height = `${size}px`;
+                    zoneElement.style.borderRadius = '50%';
+                }
+            }
+            
             zoneElement.dataset.id = id;
             
             // Texto representativo
-            zoneElement.textContent = zone.field_name ? `${id} (${zone.field_name})` : id;
+            if (zone.type === 'text') {
+                zoneElement.textContent = zone.field_name ? `${id} (${zone.field_name})` : id;
+            } else {
+                zoneElement.textContent = id;
+            }
             
             // Adicionar ao editor
             editor.appendChild(zoneElement);
@@ -407,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Atualizar título
         document.getElementById('current-zone-title').textContent = `Zona: ${id}`;
         
-        // Preencher campos
+        // Preencher campos comuns
         document.getElementById('zone-id').value = id;
         document.getElementById('zone-type').value = zone.type || 'text';
         document.getElementById('zone-x').value = Math.round(zone.x);
@@ -416,18 +485,26 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('zone-height').value = Math.round(zone.height);
         document.getElementById('zone-z-index').value = zone.z_index || 1;
         
-        // Campos específicos para texto
+        // Propriedades visuais comuns
+        document.getElementById('zone-opacity').value = zone.opacity || 1.0;
+        document.getElementById('zone-background-color').value = zone.background_color || '#000000';
+        document.getElementById('zone-border-color').value = zone.border_color || '#000000';
+        document.getElementById('zone-border-width').value = zone.border_width || 0;
+        
+        // Mostrar/esconder propriedades específicas baseadas no tipo
+        togglePropertiesBasedOnType(zone.type || 'text');
+        
+        // Propriedades específicas por tipo
         if (zone.type === 'text') {
             document.getElementById('zone-field').value = zone.field_name || 'name';
             document.getElementById('zone-font-size').value = zone.font_size || 12;
             document.getElementById('zone-text-color').value = zone.text_color || '#FFFFFF';
             document.getElementById('zone-text-align').value = zone.text_align || 'left';
-            
-            // Mostrar propriedades de texto
-            document.getElementById('text-properties').classList.remove('hidden');
-        } else {
-            // Esconder propriedades de texto para outros tipos
-            document.getElementById('text-properties').classList.add('hidden');
+        }
+        
+        // Propriedades para círculos/cantos arredondados
+        if (zone.type === 'circle' || zone.border_radius) {
+            document.getElementById('zone-border-radius').value = zone.border_radius || 0;
         }
     }
     
@@ -444,21 +521,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const height = parseInt(document.getElementById('zone-height').value);
         const zIndex = parseInt(document.getElementById('zone-z-index').value);
         
-        // Valores específicos para texto
+        // Propriedades visuais comuns
+        const opacity = parseFloat(document.getElementById('zone-opacity').value);
+        const backgroundColor = document.getElementById('zone-background-color').value;
+        const borderColor = document.getElementById('zone-border-color').value;
+        const borderWidth = parseInt(document.getElementById('zone-border-width').value);
+        
+        // Valores específicos para tipo
         let properties = {
             type,
             x,
             y,
             width,
             height,
-            z_index: zIndex
+            z_index: zIndex,
+            opacity,
+            background_color: backgroundColor,
+            border_color: borderColor,
+            border_width: borderWidth
         };
         
+        // Propriedades específicas por tipo
         if (type === 'text') {
             properties.field_name = document.getElementById('zone-field').value;
             properties.font_size = parseInt(document.getElementById('zone-font-size').value);
             properties.text_color = document.getElementById('zone-text-color').value;
             properties.text_align = document.getElementById('zone-text-align').value;
+        }
+        
+        // Para círculos e retângulos com cantos arredondados
+        if (type === 'circle' || document.getElementById('zone-border-radius').value > 0) {
+            properties.border_radius = parseInt(document.getElementById('zone-border-radius').value);
         }
         
         // Se o ID mudou, precisamos criar uma nova entrada e excluir a antiga
@@ -499,19 +592,37 @@ document.addEventListener('DOMContentLoaded', function() {
             id = 'zone_' + Math.floor(Math.random() * 1000);
         }
         
+        // Obter o tipo selecionado (ou usar texto como padrão)
+        const selectedType = document.getElementById('zone-type').value || 'text';
+        
         // Criar nova zona com valores padrão
-        zones[id] = {
-            type: 'text',
+        let newZone = {
+            type: selectedType,
             x: 20,
             y: 20,
             width: 100,
             height: 30,
             z_index: 1,
-            field_name: 'name',
-            font_size: 12,
-            text_color: '#FFFFFF',
-            text_align: 'left'
+            opacity: 1.0,
+            background_color: '#3B82F6',
+            border_color: '#2563EB',
+            border_width: 1
         };
+        
+        // Propriedades adicionais baseadas no tipo
+        if (selectedType === 'text') {
+            newZone.field_name = 'name';
+            newZone.font_size = 12;
+            newZone.text_color = '#FFFFFF';
+            newZone.text_align = 'left';
+        } else if (selectedType === 'circle') {
+            newZone.border_radius = 50;
+            newZone.width = 60;
+            newZone.height = 60;
+        }
+        
+        // Adicionar ao objeto zones
+        zones[id] = newZone;
         
         // Renderizar e selecionar nova zona
         renderZones();
@@ -537,10 +648,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para alternar propriedades baseadas no tipo
     function togglePropertiesBasedOnType(type) {
+    // Mostrar/esconder propriedades de texto
         if (type === 'text') {
             document.getElementById('text-properties').classList.remove('hidden');
         } else {
             document.getElementById('text-properties').classList.add('hidden');
+        }
+        
+        // Mostrar/esconder propriedades de círculo
+        if (type === 'circle') {
+            document.getElementById('circle-properties').classList.remove('hidden');
+        } else {
+            document.getElementById('circle-properties').classList.add('hidden');
         }
     }
     

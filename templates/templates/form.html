@@ -4,7 +4,7 @@
 <div class="max-w-2xl mx-auto bg-gray-800 p-6 rounded-lg">
     <h2 class="text-2xl font-bold mb-6">{{ template.name if template else "Novo Template" }}</h2>
     
-    <form method="POST" action="{{ '/templates/' + template.id + '/edit' if template else '/templates/new' }}" class="space-y-4">
+    <form method="POST" action="{{ '/templates/' + template.id + '/edit' if template else '/templates/new' }}" enctype="multipart/form-data" class="space-y-4">
         <div>
             <label class="block text-sm font-medium">ID</label>
             <input type="text" name="id" value="{{ template.id if template else '' }}" required

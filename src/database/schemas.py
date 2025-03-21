@@ -115,15 +115,22 @@ class ZoneBase(BaseModel):
     y: int
     width: int
     height: int
-    type: str  # "text", "image", "icon", etc.
+    type: str  # "text", "image", "rectangle", "circle", "icon", etc.
     z_index: Optional[int] = 1  # Ordem de camada
+    opacity: Optional[float] = 1.0  # Opacidade do elemento (0.0 a 1.0)
+    background_color: Optional[str] = None  # Cor de fundo do elemento
+    border_color: Optional[str] = None  # Cor da borda
+    border_width: Optional[int] = 0  # Largura da borda
     
-    # Campos opcionais para zonas de texto
+    # Apenas para zonas de texto
     font_size: Optional[int] = None
     font_family: Optional[str] = None
     text_align: Optional[str] = None
     text_color: Optional[str] = None
     field_name: Optional[str] = None  # Campo da carta a ser usado (name, text, etc.)
+    
+    # Para círculos
+    border_radius: Optional[int] = None  # Para cantos arredondados em retângulos ou raio de círculos
 
 # Esquema base para CardTemplate
 class CardTemplateBase(BaseModel):
