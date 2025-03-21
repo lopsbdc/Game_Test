@@ -19,6 +19,10 @@ class Card(Base):
     flavor_text = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     image_url = Column(String, nullable=True)
+    
+    # Adicionar referência ao template
+    template_id = Column(String, ForeignKey('card_templates.id'), nullable=True)
+    template = relationship("CardTemplate")
 
 # Tabela de associação para relacionamento muitos-para-muitos entre Deck e Card
 deck_card = Table('deck_cards', Base.metadata,

@@ -232,3 +232,22 @@ async def update_template_zones(request: Request, template_id: str, db: Session 
         logger.error(f"Erro ao atualizar zonas: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/templates/{template_id}/json")
+async def get_template_json(template_id: str, db: Session = Depends(get_db)):
+    repository = TemplateRepository(db)
+    template = repository.get_by_id(template_id)
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template não encontrado")
+    
+    return {
+        "id": template.id,
+        "name": template.name,
+        "description": template.description,
+        "background_type": template.background_type,
+        "background_image_url": template.background_image_url,
+        "overlay_opacity": template.overlay_opacity,
+        "width_mm": template.width_mm,
+        "height_mm": template.height_mm,
+        "zones": template.zones
+    }

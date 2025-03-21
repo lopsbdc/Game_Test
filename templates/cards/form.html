@@ -51,6 +51,25 @@
             </select>
         </div>
 
+        <div>
+            <label class="block text-sm font-medium">Template</label>
+            <select name="template_id" class="mt-1 w-full p-2 bg-gray-700 rounded" id="templateSelect">
+                <option value="">Sem Template</option>
+                {% for template in templates %}
+                <option value="{{ template.id }}" {% if card and card.template_id == template.id %}selected{% endif %}>
+                    {{ template.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="templatePreview" class="mt-4 border border-gray-600 rounded overflow-hidden bg-gray-900 hidden">
+            <div class="p-2 bg-gray-800 text-sm font-medium">Preview do Template</div>
+            <div class="p-4 relative" id="previewContainer">
+                <!-- O preview do template será renderizado aqui via JavaScript -->
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium">Custo</label>
@@ -162,5 +181,172 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('cardId').addEventListener('input', checkFields);
     document.getElementById('cardName').addEventListener('input', checkFields);
 });
+
+// Função para renderizar o preview do template
+async function renderTemplatePreview() {
+    const templateId = document.getElementById('templateSelect').value;
+    const previewContainer = document.getElementById('previewContainer');
+    const templatePreview = document.getElementById('templatePreview');
+    
+    if (!templateId) {
+        templatePreview.classList.add('hidden');
+        return;
+    }
+    
+    // Mostrar o container
+    templatePreview.classList.remove('hidden');
+    
+    try {
+        // Buscar detalhes do template
+        const response = await fetch(`/templates/${templateId}`);
+        const templateData = await response.json();
+        
+        if (!templateData || !templateData.zones) {
+            previewContainer.innerHTML = '<p class="text-gray-400">Este template não possui zonas definidas.</p>';
+            return;
+        }
+        
+        // Configurar o container
+        previewContainer.style.width = `${templateData.width_mm * 3}px`;
+        previewContainer.style.height = `${templateData.height_mm * 3}px`;
+        
+        // Cor baseada no valor selecionado
+        const colorSelect = document.querySelector('[name="color"]');
+        let bgColor = 'rgba(66, 135, 245, 0.8)'; // Azul padrão
+        
+        if (colorSelect) {
+            const colorValue = colorSelect.value;
+            if (colorValue === 'Purple') bgColor = 'rgba(186, 104, 245, 0.8)';
+            else if (colorValue === 'Blue') bgColor = 'rgba(66, 135, 245, 0.8)';
+            else if (colorValue === 'Red') bgColor = 'rgba(245, 66, 66, 0.8)';
+            else if (colorValue === 'Green') bgColor = 'rgba(66, 245, 102, 0.8)';
+            else if (colorValue === 'Gold') bgColor = 'rgba(245, 209, 66, 0.8)';
+        }
+        
+        previewContainer.style.backgroundColor = bgColor;
+        
+        // Limpar o container
+        previewContainer.innerHTML = '';
+        
+        // Renderizar cada zona
+        Object.entries(templateData.zones).forEach(([id, zone]) => {
+            const scale = 0.75; // 3/4 do tamanho original
+            
+            const zoneElement = document.createElement('div');
+            zoneElement.className = 'absolute';
+            
+            zoneElement.style.left = `${zone.x * scale}px`;
+            zoneElement.style.top = `${zone.y * scale}px`;
+            zoneElement.style.width = `${zone.width * scale}px`;
+            zoneElement.style.height = `${zone.height * scale}px`;
+            zoneElement.style.zIndex = zone.z_index || 1;
+            
+            // Aplicar outros estilos
+            if (zone.background_color) {
+                zoneElement.style.backgroundColor = zone.background_color;
+            }
+            if (zone.opacity !== undefined) {
+                zoneElement.style.opacity = zone.opacity;
+            }
+            if (zone.border_color) {
+                zoneElement.style.borderColor = zone.border_color;
+            }
+            if (zone.border_width) {
+                zoneElement.style.borderWidth = `${zone.border_width}px`;
+                zoneElement.style.borderStyle = 'solid';
+            }
+            if (zone.border_radius || zone.type === 'circle') {
+                const radius = zone.border_radius || (zone.type === 'circle' ? '50%' : '0');
+                zoneElement.style.borderRadius = typeof radius === 'number' ? `${radius}px` : radius;
+            }
+            
+            // Se for zona de texto, adicionar o texto atual do formulário
+            if (zone.type === 'text' && zone.field_name) {
+                const fieldInput = document.querySelector(`[name="${zone.field_name}"]`);
+                let fieldValue = '';
+                
+                if (fieldInput) {
+                    fieldValue = fieldInput.value || fieldInput.placeholder || zone.field_name;
+                }
+                
+                zoneElement.style.color = zone.text_color || '#FFFFFF';
+                zoneElement.style.fontSize = `${(zone.font_size || 12) * scale}px`;
+                zoneElement.style.textAlign = zone.text_align || 'left';
+                zoneElement.style.display = 'flex';
+                zoneElement.style.alignItems = 'center';
+                zoneElement.style.justifyContent = zone.text_align === 'center' ? 'center' : 'flex-start';
+                zoneElement.textContent = fieldValue;
+            } else if (zone.type === 'image') {
+                zoneElement.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                zoneElement.style.display = 'flex';
+                zoneElement.style.alignItems = 'center';
+                zoneElement.style.justifyContent = 'center';
+                zoneElement.style.color = 'white';
+                zoneElement.style.fontSize = `${10 * scale}px`;
+                zoneElement.textContent = 'Imagem';
+                
+                // Tentar usar a imagem do formulário se disponível
+                const imageInput = document.querySelector('input[name="image"]');
+                if (imageInput && imageInput.files && imageInput.files[0]) {
+                    const imgElement = document.createElement('img');
+                    imgElement.style.width = '100%';
+                    imgElement.style.height = '100%';
+                    imgElement.style.objectFit = 'contain';
+                    zoneElement.textContent = '';
+                    zoneElement.appendChild(imgElement);
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imgElement.src = e.target.result;
+                    };
+                    reader.readAsDataURL(imageInput.files[0]);
+                } else if (document.querySelector('img[src^="/static/images/"]')) {
+                    // Se estiver editando uma carta e já tem imagem
+                    const imgSrc = document.querySelector('img[src^="/static/images/"]').src;
+                    const imgElement = document.createElement('img');
+                    imgElement.src = imgSrc;
+                    imgElement.style.width = '100%';
+                    imgElement.style.height = '100%';
+                    imgElement.style.objectFit = 'contain';
+                    zoneElement.textContent = '';
+                    zoneElement.appendChild(imgElement);
+                }
+            }
+            
+            previewContainer.appendChild(zoneElement);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar template:', error);
+        previewContainer.innerHTML = '<p class="text-red-400">Erro ao carregar template.</p>';
+    }
+}
+
+// Adicionar event listeners para atualizar o preview em tempo real
+document.addEventListener('DOMContentLoaded', function() {
+    // Eventos existentes...
+    
+    // Template select change
+    const templateSelect = document.getElementById('templateSelect');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', renderTemplatePreview);
+        
+        // Renderizar o preview inicial se um template estiver selecionado
+        if (templateSelect.value) {
+            renderTemplatePreview();
+        }
+    }
+    
+    // Atualizar preview quando os campos mudarem
+    const formInputs = document.querySelectorAll('input, textarea, select');
+    formInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (templateSelect.value) {
+                renderTemplatePreview();
+            }
+        });
+    });
+});
+
 </script>
 {% endblock %}

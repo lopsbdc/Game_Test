@@ -15,7 +15,8 @@ class CardBase(BaseModel):
     heat_effect: Optional[str] = None
     heat_cost: Optional[int] = None
     flavor_text: Optional[str] = None
-    image_url: Optional[str] = None  
+    image_url: Optional[str] = None
+    template_id: Optional[str] = None
 
 class CardCreate(CardBase):
     id: str

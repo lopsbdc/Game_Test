@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from ..database.repositories.template_repository import TemplateRepository
 from pathlib import Path
 from ..database.connection import get_db
 from ..database.repositories.card_repository import CardRepository
@@ -169,3 +170,29 @@ async def update_card(
         logger.error(f"Erro ao atualizar carta: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
+@router.get("/cards/new", response_class=HTMLResponse)
+async def new_card_form(request: Request, db: Session = Depends(get_db)):
+    # Buscar templates disponíveis
+    template_repo = TemplateRepository(db)
+    templates = template_repo.get_all()
+    
+    return templates.TemplateResponse("cards/form.html", {
+        "request": request,
+        "card": None,
+        "templates": templates
+    })
+
+@router.get("/cards/{card_id}/edit", response_class=HTMLResponse)
+async def edit_card(request: Request, card_id: str, db: Session = Depends(get_db)):
+    repository = CardRepository(db)
+    card = repository.get_by_id(card_id)
+    
+    # Buscar templates disponíveis
+    template_repo = TemplateRepository(db)
+    templates = template_repo.get_all()
+    
+    return templates.TemplateResponse("cards/form.html", {
+        "request": request,
+        "card": card,
+        "templates": templates
+    })
