@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<script src="/static/js/card-template-renderer.js"></script>
+
 <div class="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg">
-    <div class="flex">
+        <div class="flex">
         <div class="flex-1 pr-6">
             <div class="mb-6">
                 <h2 class="text-2xl font-bold">{{ card.name }}</h2>
@@ -17,7 +20,12 @@
         </div>
         {% if card.image_url %}
         <div class="w-96">
-            <img src="{{ card.image_url }}" alt="{{ card.name }}" class="w-full rounded shadow-lg">
+            <div id="cardRenderer" class="w-full rounded shadow-lg">
+                <!-- A carta será renderizada aqui via JavaScript -->
+                <div class="flex items-center justify-center h-64 bg-gray-700 text-gray-400">
+                    Carregando visualização...
+                </div>
+            </div>
         </div>
         {% endif %}
     </div>
@@ -25,4 +33,44 @@
         <a href="/cards" class="text-blue-400 hover:text-blue-300">Voltar</a>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dados da carta
+        const card = {
+            id: "{{ card.id }}",
+            name: "{{ card.name }}",
+            card_type: "{{ card.card_type }}",
+            color: "{{ card.color }}",
+            cost: {{ card.cost or 'null' }},
+            power: {{ card.power or 'null' }},
+            rarity: "{{ card.rarity }}",
+            text: `{{ card.text|replace('\n', ' ')|safe }}`,
+            heat_effect: `{{ card.heat_effect|replace('\n', ' ')|safe if card.heat_effect else '' }}`,
+            heat_cost: {{ card.heat_cost or 'null' }},
+            flavor_text: `{{ card.flavor_text|replace('\n', ' ')|safe if card.flavor_text else '' }}`,
+            image_url: "{{ card.image_url or '' }}"
+        };
+        
+        {% if card.template %}
+        // Dados do template
+        const template = {{ card.template|tojson }};
+        
+        // Renderizar a carta com o template
+        const container = document.getElementById('cardRenderer');
+        renderCardWithTemplate(card, template, container, {
+            scale: 1.0,
+            mode: 'full'
+        });
+        {% else %}
+        // Sem template, usar visualização padrão
+        const container = document.getElementById('cardRenderer');
+        renderCardWithTemplate(card, null, container, {
+            scale: 1.0,
+            mode: 'full'
+        });
+        {% endif %}
+    });
+</script>
+
 {% endblock %}

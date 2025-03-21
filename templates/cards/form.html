@@ -55,14 +55,25 @@
             <label class="block text-sm font-medium">Template</label>
             <select name="template_id" class="mt-1 w-full p-2 bg-gray-700 rounded" id="templateSelect">
                 <option value="">Sem Template</option>
-                {% for template in templates %}
-                <option value="{{ template.id }}" {% if card and card.template_id == template.id %}selected{% endif %}>
-                    {{ template.name }}
-                </option>
-                {% endfor %}
+                {% if templates %}
+                    {% for template in templates %}
+                    <option value="{{ template.id }}" {% if card and card.template_id == template.id %}selected{% endif %}>
+                        {{ template.name }}
+                    </option>
+                    {% endfor %}
+                {% else %}
+                    <option value="" disabled>Nenhum template disponível</option>
+                {% endif %}
             </select>
+            {% if templates %}
+            <div class="text-xs text-gray-400 mt-1">Selecione um template para definir a aparência visual da carta</div>
+            {% else %}
+            <div class="text-xs text-red-400 mt-1">
+                <a href="/templates/new" class="underline">Crie um template</a> para melhorar a visualização das cartas
+            </div>
+            {% endif %}
         </div>
-
+        
         <div id="templatePreview" class="mt-4 border border-gray-600 rounded overflow-hidden bg-gray-900 hidden">
             <div class="p-2 bg-gray-800 text-sm font-medium">Preview do Template</div>
             <div class="p-4 relative" id="previewContainer">
@@ -176,10 +187,31 @@ async function checkFields() {
 }
 
 // Event listeners
+// Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     updateFormFields();
     document.getElementById('cardId').addEventListener('input', checkFields);
     document.getElementById('cardName').addEventListener('input', checkFields);
+    
+    // Evento de mudança no select de template (ADICIONAR ESTE BLOCO)
+    const templateSelect = document.getElementById('templateSelect');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', function() {
+            const previewContainer = document.getElementById('templatePreview');
+            if (this.value) {
+                previewContainer.classList.remove('hidden');
+                // Aqui implementaremos a visualização do template selecionado 
+                // em uma próxima etapa
+            } else {
+                previewContainer.classList.add('hidden');
+            }
+        });
+        
+        // Mostrar preview se um template estiver selecionado
+        if (templateSelect.value) {
+            document.getElementById('templatePreview').classList.remove('hidden');
+        }
+    }
 });
 
 // Função para renderizar o preview do template

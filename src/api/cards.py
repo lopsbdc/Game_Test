@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from ..database.repositories.template_repository import TemplateRepository
 from pathlib import Path
 from ..database.connection import get_db
 from ..database.repositories.card_repository import CardRepository
+from ..database.repositories.template_repository import TemplateRepository
 from ..database.schemas import CardCreate, Card
 import logging
 import sys
@@ -50,21 +50,26 @@ async def handle_image_upload(image, card_id: str) -> str:
         raise
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates_engine = Jinja2Templates(directory="templates")
 
 # Rota GET para listar cartas
 @router.get("/cards", response_class=HTMLResponse)
 async def list_cards(request: Request, db: Session = Depends(get_db)):
     repository = CardRepository(db)
     cards = repository.get_all()
-    return templates.TemplateResponse("cards/list.html", {"request": request, "cards": cards})
+    return templates_engine.TemplateResponse("cards/list.html", {"request": request, "cards": cards})
 
 # Nova carta - GET (formulário)
 @router.get("/cards/new", response_class=HTMLResponse)
-async def new_card_form(request: Request):
-    return templates.TemplateResponse("cards/form.html", {
+async def new_card_form(request: Request, db: Session = Depends(get_db)):
+    # Buscar templates disponíveis
+    template_repo = TemplateRepository(db)
+    available_templates = template_repo.get_all()
+    
+    return templates_engine.TemplateResponse("cards/form.html", {
         "request": request,
-        "card": None
+        "card": None,
+        "templates": available_templates
     })
 
 @router.post("/cards/new/check")
@@ -109,11 +114,11 @@ async def create_card(
             logger.warning("Nenhuma imagem encontrada no formulário")
 
         # Convertemos tipos numéricos
-        if 'cost' in card_data:
+        if 'cost' in card_data and card_data['cost']:
             card_data['cost'] = int(card_data['cost'])
-        if 'power' in card_data:
+        if 'power' in card_data and card_data['power']:
             card_data['power'] = int(card_data['power'])
-        if 'heat_cost' in card_data:
+        if 'heat_cost' in card_data and card_data['heat_cost']:
             card_data['heat_cost'] = int(card_data['heat_cost'])
 
         print("Dados finais antes de criar:", card_data)
@@ -132,14 +137,30 @@ async def create_card(
 async def view_card(request: Request, card_id: str, db: Session = Depends(get_db)):
     repository = CardRepository(db)
     card = repository.get_by_id(card_id)
-    return templates.TemplateResponse("cards/view.html", {"request": request, "card": card})
+    
+    # Se a carta tiver um template associado, buscar os detalhes do template
+    if card and card.template_id:
+        template_repo = TemplateRepository(db)
+        template = template_repo.get_by_id(card.template_id)
+        card.template = template
+    
+    return templates_engine.TemplateResponse("cards/view.html", {"request": request, "card": card})
 
 # Rota GET para editar carta
 @router.get("/cards/{card_id}/edit", response_class=HTMLResponse)
 async def edit_card(request: Request, card_id: str, db: Session = Depends(get_db)):
     repository = CardRepository(db)
     card = repository.get_by_id(card_id)
-    return templates.TemplateResponse("cards/form.html", {"request": request, "card": card})
+    
+    # Buscar templates disponíveis
+    template_repo = TemplateRepository(db)
+    available_templates = template_repo.get_all()
+    
+    return templates_engine.TemplateResponse("cards/form.html", {
+        "request": request,
+        "card": card,
+        "templates": available_templates
+    })
 
 @router.get("/cards/{card_id}/delete")
 async def delete_card(card_id: str, db: Session = Depends(get_db)):
@@ -158,6 +179,14 @@ async def update_card(
         form = await request.form()
         card_data = dict(form)
 
+        # Converter tipos numéricos
+        if 'cost' in card_data and card_data['cost']:
+            card_data['cost'] = int(card_data['cost'])
+        if 'power' in card_data and card_data['power']:
+            card_data['power'] = int(card_data['power'])
+        if 'heat_cost' in card_data and card_data['heat_cost']:
+            card_data['heat_cost'] = int(card_data['heat_cost'])
+
         if "image" in form and hasattr(form["image"], "filename"):
             image = form["image"]
             card_data['image_url'] = await handle_image_upload(image, card_id)
@@ -169,30 +198,3 @@ async def update_card(
     except Exception as e:
         logger.error(f"Erro ao atualizar carta: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    
-@router.get("/cards/new", response_class=HTMLResponse)
-async def new_card_form(request: Request, db: Session = Depends(get_db)):
-    # Buscar templates disponíveis
-    template_repo = TemplateRepository(db)
-    templates = template_repo.get_all()
-    
-    return templates.TemplateResponse("cards/form.html", {
-        "request": request,
-        "card": None,
-        "templates": templates
-    })
-
-@router.get("/cards/{card_id}/edit", response_class=HTMLResponse)
-async def edit_card(request: Request, card_id: str, db: Session = Depends(get_db)):
-    repository = CardRepository(db)
-    card = repository.get_by_id(card_id)
-    
-    # Buscar templates disponíveis
-    template_repo = TemplateRepository(db)
-    templates = template_repo.get_all()
-    
-    return templates.TemplateResponse("cards/form.html", {
-        "request": request,
-        "card": card,
-        "templates": templates
-    })
