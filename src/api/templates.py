@@ -66,6 +66,10 @@ async def create_template(request: Request, db: Session = Depends(get_db)):
             template_data['width_mm'] = int(template_data['width_mm'])
         if 'height_mm' in template_data and template_data['height_mm']:
             template_data['height_mm'] = int(template_data['height_mm'])
+
+        if "background_image" in form and hasattr(form["background_image"], "filename"):
+            image = form["background_image"]
+            template_data['background_image_url'] = await handle_background_image_upload(image, template_data['id'])
         
         # Processar zonas do JSON
         if 'zones' in template_data and template_data['zones']:
@@ -128,6 +132,10 @@ async def update_template(request: Request, template_id: str, db: Session = Depe
             template_data['width_mm'] = int(template_data['width_mm'])
         if 'height_mm' in template_data and template_data['height_mm']:
             template_data['height_mm'] = int(template_data['height_mm'])
+
+        if "background_image" in form and hasattr(form["background_image"], "filename"):
+            image = form["background_image"] 
+            template_data['background_image_url'] = await handle_background_image_upload(image, template_id)
         
         # Processar zonas do JSON
         if 'zones' in template_data and template_data['zones']:
@@ -194,3 +202,31 @@ async def update_template_zones(request: Request, template_id: str, db: Session 
     except Exception as e:
         logger.error(f"Erro ao atualizar zonas: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+async def handle_background_image_upload(image, template_id: str) -> str:
+    """
+    Função auxiliar para processar upload de imagem de fundo.
+    Retorna a URL da imagem se bem sucedido.
+    """
+    try:
+        logger.info(f"Processando imagem de fundo para template_id: {template_id}")
+        
+        image_dir = Path("static/templates")
+        image_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = image_dir / f"{template_id}_bg.png"
+        contents = await image.read()
+        
+        with open(file_path, "wb") as f:
+            f.write(contents)
+            
+        if file_path.exists():
+            image_url = f"/static/templates/{template_id}_bg.png"
+            logger.info(f"Imagem de fundo salva com sucesso: {image_url}")
+            return image_url
+        else:
+            raise Exception("Arquivo não foi criado")
+            
+    except Exception as e:
+        logger.error(f"Erro no upload da imagem de fundo: {str(e)}")
+        raise

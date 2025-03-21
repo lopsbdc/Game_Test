@@ -54,7 +54,9 @@ class CardTemplate(Base):
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    
+
+    background_image_url = Column(String, nullable=True)
+
     # Configurações visuais básicas
     background_type = Column(String, default="color_based")  # color_based, image, gradient
     overlay_opacity = Column(Integer, default=80)  # Valor de 0-100 para opacidade

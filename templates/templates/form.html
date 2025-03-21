@@ -32,6 +32,15 @@
         </div>
 
         <div>
+            <label class="block text-sm font-medium">Imagem de Fundo</label>
+            <input type="file" name="background_image" accept="image/*" 
+                   class="mt-1 w-full p-2 bg-gray-700 rounded">
+            {% if template and template.background_image_url %}
+                <img src="{{ template.background_image_url }}" alt="Background" class="mt-2 h-40 object-contain">
+            {% endif %}
+        </div>
+
+        <div>
             <label class="block text-sm font-medium">Opacidade do Overlay (0-100)</label>
             <input type="range" name="overlay_opacity" min="0" max="100" step="5" 
                   value="{{ template.overlay_opacity if template else '80' }}"
@@ -57,10 +66,11 @@
             </div>
         </div>
 
-        <div>
-            <label class="block text-sm font-medium">Zonas (JSON)</label>
-            <textarea name="zones" class="mt-1 w-full p-2 bg-gray-700 rounded h-64 font-mono text-sm">{{ template.zones|tojson if template and template.zones else '{}' }}</textarea>
-            <p class="text-xs text-gray-400 mt-1">Edição avançada de zonas. Recomendamos usar o Editor Visual após salvar o template.</p>
+        <div class="mt-4 p-4 bg-gray-700 rounded">
+            <p class="text-center">
+                <span class="font-medium">Zonas e Layout:</span> 
+                Após salvar o template, use o Editor Visual para configurar as zonas e o layout da carta.
+            </p>
         </div>
  
         <div class="flex justify-end space-x-4 mt-6">

@@ -147,3 +147,4 @@ class CardTemplate(CardTemplateBase):
 
     class Config:
         from_attributes = True
+        background_image_url: Optional[str] = None
