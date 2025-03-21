@@ -7,10 +7,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Área de Edição -->
         <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg">
-            <div id="card-editor" class="relative border-2 border-gray-600 rounded overflow-hidden" 
-                 style="width: {{ template.width_mm * 4 }}px; height: {{ template.height_mm * 4 }}px; background-color: #1a1a1a;">
+            <div id="card-editor" class="relative border-2 border-gray-600 rounded overflow-hidden"
+                 style="width: {{ template.width_mm * 4 }}px; height: {{ template.height_mm * 4 }}px;
+                 {% if template.background_image_url %}
+                 background-image: url('{{ template.background_image_url }}');
+                 background-size: cover;
+                 background-position: center;
+                 {% else %}
+                 background-color: #1a1a1a;
+                 {% endif %}">
                 
                 <!-- Zonas serão renderizadas aqui via JavaScript -->
+                
             </div>
             
             <div class="flex justify-between mt-4">

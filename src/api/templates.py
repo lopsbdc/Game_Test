@@ -17,6 +17,34 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+async def handle_background_image_upload(image, template_id: str) -> str:
+    """
+    Função auxiliar para processar upload de imagem de fundo.
+    Retorna a URL da imagem se bem sucedido.
+    """
+    try:
+        logger.info(f"Processando imagem de fundo para template_id: {template_id}")
+        
+        image_dir = Path("static/templates")
+        image_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = image_dir / f"{template_id}_bg.png"
+        contents = await image.read()
+        
+        with open(file_path, "wb") as f:
+            f.write(contents)
+            
+        if file_path.exists():
+            image_url = f"/static/templates/{template_id}_bg.png"
+            logger.info(f"Imagem de fundo salva com sucesso: {image_url}")
+            return image_url
+        else:
+            raise Exception("Arquivo não foi criado")
+            
+    except Exception as e:
+        logger.error(f"Erro no upload da imagem de fundo: {str(e)}")
+        raise
+
 # Rota para listar templates
 @router.get("/templates", response_class=HTMLResponse)
 async def list_templates(request: Request, db: Session = Depends(get_db)):
@@ -203,30 +231,3 @@ async def update_template_zones(request: Request, template_id: str, db: Session 
         logger.error(f"Erro ao atualizar zonas: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-async def handle_background_image_upload(image, template_id: str) -> str:
-    """
-    Função auxiliar para processar upload de imagem de fundo.
-    Retorna a URL da imagem se bem sucedido.
-    """
-    try:
-        logger.info(f"Processando imagem de fundo para template_id: {template_id}")
-        
-        image_dir = Path("static/templates")
-        image_dir.mkdir(parents=True, exist_ok=True)
-        
-        file_path = image_dir / f"{template_id}_bg.png"
-        contents = await image.read()
-        
-        with open(file_path, "wb") as f:
-            f.write(contents)
-            
-        if file_path.exists():
-            image_url = f"/static/templates/{template_id}_bg.png"
-            logger.info(f"Imagem de fundo salva com sucesso: {image_url}")
-            return image_url
-        else:
-            raise Exception("Arquivo não foi criado")
-            
-    except Exception as e:
-        logger.error(f"Erro no upload da imagem de fundo: {str(e)}")
-        raise
