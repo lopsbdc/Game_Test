@@ -187,29 +187,44 @@ async function checkFields() {
 }
 
 // Event listeners
-// Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     updateFormFields();
     document.getElementById('cardId').addEventListener('input', checkFields);
     document.getElementById('cardName').addEventListener('input', checkFields);
     
-    // Evento de mudança no select de template (ADICIONAR ESTE BLOCO)
+    // Evento de mudança no select de template
+    // Evento de mudança no select de template
+    // Evento de mudança no select de template
     const templateSelect = document.getElementById('templateSelect');
     if (templateSelect) {
         templateSelect.addEventListener('change', function() {
             const previewContainer = document.getElementById('templatePreview');
             if (this.value) {
+                // Mostrar o preview
                 previewContainer.classList.remove('hidden');
-                // Aqui implementaremos a visualização do template selecionado 
-                // em uma próxima etapa
+                
+                // Mostrar um preview simples do template selecionado
+                const previewDiv = document.getElementById('previewContainer');
+                const templateName = this.options[this.selectedIndex].text;
+                
+                previewDiv.innerHTML = `
+                    <div class="p-4 text-center bg-gray-800 rounded">
+                        <div class="text-lg font-semibold text-blue-400">Template: ${templateName}</div>
+                        <div class="mt-2 text-sm text-gray-300">
+                            Este template será aplicado para definir a aparência visual da carta.
+                        </div>
+                    </div>
+                `;
             } else {
                 previewContainer.classList.add('hidden');
             }
         });
         
-        // Mostrar preview se um template estiver selecionado
+        // Mostrar preview se um template estiver selecionado inicialmente
         if (templateSelect.value) {
             document.getElementById('templatePreview').classList.remove('hidden');
+            // Acionar o evento de mudança para mostrar o preview
+            templateSelect.dispatchEvent(new Event('change'));
         }
     }
 });

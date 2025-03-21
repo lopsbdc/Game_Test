@@ -52,9 +52,9 @@
             image_url: "{{ card.image_url or '' }}"
         };
         
-        {% if card.template %}
-        // Dados do template
-        const template = {{ card.template|tojson }};
+        {% if template_data %}
+            // Dados do template
+            const template = {{ template_data|tojson }};
         
         // Renderizar a carta com o template
         const container = document.getElementById('cardRenderer');

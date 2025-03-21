@@ -6,6 +6,14 @@
  * @param {Object} options - Opções de renderização (escala, modo, etc)
  */
 function renderCardWithTemplate(card, template, container, options = {}) {
+
+    // Verificar se o template tem zonas definidas
+    if (template && Object.keys(template.zones || {}).length === 0) {
+        // Template sem zonas, usar visualização padrão
+        renderDefaultCard(card, container, config);
+        return;
+    }
+
     // Configurações padrão
     const config = {
         scale: options.scale || 1.0,
@@ -71,8 +79,11 @@ function applyCardBackground(card, template, container) {
 /**
  * Renderiza uma zona específica do template
  */
+/**
+ * Renderiza uma zona específica do template
+ */
 function renderZone(id, zone, card, container, config) {
-    // Implementação básica inicial
+    // Criar elemento para a zona
     const zoneElement = document.createElement('div');
     zoneElement.className = 'template-zone';
     zoneElement.dataset.zoneId = id;
@@ -83,16 +94,58 @@ function renderZone(id, zone, card, container, config) {
     zoneElement.style.top = `${zone.y * config.scale}px`;
     zoneElement.style.width = `${zone.width * config.scale}px`;
     zoneElement.style.height = `${zone.height * config.scale}px`;
-    zoneElement.style.zIndex = zone.z_index || 1;
+    zoneElement.style.zIndex = (zone.z_index || 1) + 1; // +1 para ficar acima do overlay
     
-    // Adicionar borda temporária para visualização
-    zoneElement.style.border = '1px dashed rgba(255, 255, 255, 0.5)';
+    // Aplicar estilos específicos (se definidos no template)
+    if (zone.opacity !== undefined) {
+        zoneElement.style.opacity = zone.opacity;
+    }
     
-    // Adicionar texto de identificação
-    zoneElement.textContent = id;
+    if (zone.background_color) {
+        zoneElement.style.backgroundColor = zone.background_color;
+    }
+    
+    if (zone.border_color && zone.border_width) {
+        zoneElement.style.borderColor = zone.border_color;
+        zoneElement.style.borderWidth = `${zone.border_width}px`;
+        zoneElement.style.borderStyle = 'solid';
+    }
+    
+    if (zone.type === 'circle' || zone.border_radius) {
+        // Para círculos o raio é 50%
+        if (zone.type === 'circle') {
+            zoneElement.style.borderRadius = '50%';
+        } else if (zone.border_radius) {
+            zoneElement.style.borderRadius = `${zone.border_radius * config.scale}px`;
+        }
+    }
+    
+    // Renderizar conteúdo baseado no tipo de zona
+    switch (zone.type) {
+        case 'text':
+            renderTextZone(zone, card, zoneElement, config);
+            break;
+            
+        case 'image':
+            renderImageZone(zone, card, zoneElement, config);
+            break;
+            
+        case 'icon':
+            renderIconZone(zone, card, zoneElement, config);
+            break;
+            
+        default:
+            // Para outros tipos, mostrar apenas o ID da zona
+            zoneElement.textContent = id;
+    }
     
     // Adicionar zona ao container
     container.appendChild(zoneElement);
+    
+    // Adicionar eventos interativos se necessário
+    if (config.interactive && config.mode === 'edit') {
+        makeZoneInteractive(zoneElement, id, zone);
+    }
 }
 
 /**
@@ -121,4 +174,89 @@ function renderDefaultCard(card, container, config) {
             ${card.text || 'Sem efeito'}
         </div>
     `;
+}
+
+/**
+ * Renderiza uma zona de texto
+ */
+function renderTextZone(zone, card, element, config) {
+    // Campo a ser mostrado
+    const fieldName = zone.field_name || 'name';
+    
+    // Obter o valor do campo da carta
+    let content = card[fieldName] || '';
+    
+    // Configuração de texto
+    element.style.fontFamily = zone.font_family || 'Arial, sans-serif';
+    element.style.fontSize = `${(zone.font_size || 12) * config.scale}px`;
+    element.style.textAlign = zone.text_align || 'left';
+    element.style.color = zone.text_color || '#FFFFFF';
+    
+    // Alinhamento vertical (centralizado por padrão)
+    element.style.display = 'flex';
+    element.style.alignItems = 'center';
+    
+    // Alinhamento horizontal baseado no text-align
+    switch (zone.text_align) {
+        case 'center':
+            element.style.justifyContent = 'center';
+            break;
+        case 'right':
+            element.style.justifyContent = 'flex-end';
+            break;
+        default:
+            element.style.justifyContent = 'flex-start';
+    }
+    
+    // Definir conteúdo
+    element.textContent = content;
+}
+
+/**
+ * Renderiza uma zona de imagem
+ */
+function renderImageZone(zone, card, element, config) {
+    // Configurar estilo do container
+    element.style.overflow = 'hidden';
+    element.style.display = 'flex';
+    element.style.alignItems = 'center';
+    element.style.justifyContent = 'center';
+    
+    // Verificar se a carta tem imagem
+    if (card.image_url) {
+        const img = document.createElement('img');
+        img.src = card.image_url;
+        img.alt = card.name;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        element.appendChild(img);
+    } else {
+        // Placeholder para quando não há imagem
+        element.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+        element.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
+        
+        const placeholder = document.createElement('div');
+        placeholder.textContent = 'Sem imagem';
+        placeholder.style.color = 'rgba(255, 255, 255, 0.5)';
+        placeholder.style.fontSize = `${8 * config.scale}px`;
+        element.appendChild(placeholder);
+    }
+}
+
+/**
+ * Renderiza uma zona de ícone
+ */
+function renderIconZone(zone, card, element, config) {
+    // Ícones baseados em características da carta
+    let iconName = zone.icon_name || '⚡';
+    
+    // Configurar estilo
+    element.style.display = 'flex';
+    element.style.alignItems = 'center';
+    element.style.justifyContent = 'center';
+    element.style.fontSize = `${(zone.font_size || 24) * config.scale}px`;
+    
+    // Adicionar o ícone
+    element.textContent = iconName;
 }

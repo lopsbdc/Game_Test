@@ -139,12 +139,28 @@ async def view_card(request: Request, card_id: str, db: Session = Depends(get_db
     card = repository.get_by_id(card_id)
     
     # Se a carta tiver um template associado, buscar os detalhes do template
+    template_data = None
     if card and card.template_id:
         template_repo = TemplateRepository(db)
         template = template_repo.get_by_id(card.template_id)
-        card.template = template
+        if template:
+            # Converter o template para um dicionário serializável
+            template_data = {
+                "id": template.id,
+                "name": template.name,
+                "width_mm": template.width_mm or 63,
+                "height_mm": template.height_mm or 88,
+                "background_type": template.background_type or "color_based",
+                "background_image_url": template.background_image_url,
+                "overlay_opacity": template.overlay_opacity or 80,
+                "zones": template.zones or {}
+            }
     
-    return templates_engine.TemplateResponse("cards/view.html", {"request": request, "card": card})
+    return templates_engine.TemplateResponse("cards/view.html", {
+        "request": request, 
+        "card": card,
+        "template_data": template_data
+    })
 
 # Rota GET para editar carta
 @router.get("/cards/{card_id}/edit", response_class=HTMLResponse)
