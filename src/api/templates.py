@@ -251,3 +251,92 @@ async def get_template_json(template_id: str, db: Session = Depends(get_db)):
         "height_mm": template.height_mm,
         "zones": template.zones
     }
+
+@router.get("/templates/presets/{preset_name}")
+async def get_template_preset(preset_name: str, db: Session = Depends(get_db)):
+    # Definir alguns presets básicos
+    presets = {
+        "standard": {
+            "name": "Template Padrão",
+            "description": "Um template padrão com zonas para título, imagem, tipo, custo, poder e texto",
+            "width_mm": 63,
+            "height_mm": 88,
+            "background_type": "color_based",
+            "overlay_opacity": 80,
+            "zones": {
+                "title": {
+                    "type": "text",
+                    "x": 10,
+                    "y": 10,
+                    "width": 180,
+                    "height": 30,
+                    "field_name": "name",
+                    "font_size": 16,
+                    "text_align": "center",
+                    "z_index": 10
+                },
+                "image": {
+                    "type": "image",
+                    "x": 20,
+                    "y": 50,
+                    "width": 160,
+                    "height": 120,
+                    "z_index": 5,
+                    "image_fit": "contain"
+                },
+                "type": {
+                    "type": "text",
+                    "x": 10,
+                    "y": 180,
+                    "width": 100,
+                    "height": 25,
+                    "field_name": "card_type",
+                    "font_size": 12,
+                    "z_index": 10
+                },
+                "cost": {
+                    "type": "text",
+                    "x": 160,
+                    "y": 180,
+                    "width": 40,
+                    "height": 40,
+                    "field_name": "cost",
+                    "font_size": 14,
+                    "text_align": "center",
+                    "z_index": 10,
+                    "background_color": "rgba(0,0,0,0.5)",
+                    "border_radius": 20
+                },
+                "text": {
+                    "type": "text",
+                    "x": 10,
+                    "y": 210,
+                    "width": 180,
+                    "height": 100,
+                    "field_name": "text",
+                    "font_size": 12,
+                    "z_index": 10,
+                    "background_color": "rgba(0,0,0,0.3)",
+                    "border_radius": 5
+                },
+                "flavor": {
+                    "type": "text",
+                    "x": 10,
+                    "y": 320,
+                    "width": 180,
+                    "height": 30,
+                    "field_name": "flavor_text",
+                    "font_size": 10,
+                    "font_style": "italic",
+                    "text_align": "center",
+                    "z_index": 10
+                }
+            }
+        },
+        # Outros presets podem ser adicionados aqui
+    }
+    
+    if preset_name not in presets:
+        raise HTTPException(status_code=404, detail="Preset não encontrado")
+    
+    return presets[preset_name]

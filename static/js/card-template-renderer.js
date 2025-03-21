@@ -7,19 +7,19 @@
  */
 function renderCardWithTemplate(card, template, container, options = {}) {
 
-    // Verificar se o template tem zonas definidas
-    if (template && Object.keys(template.zones || {}).length === 0) {
-        // Template sem zonas, usar visualização padrão
-        renderDefaultCard(card, container, config);
-        return;
-    }
-
     // Configurações padrão
     const config = {
         scale: options.scale || 1.0,
         mode: options.mode || 'full', // full, preview, edit
         interactive: options.interactive || false
     };
+    
+    // Verificar se o template tem zonas definidas
+    if (template && Object.keys(template.zones || {}).length === 0) {
+        // Template sem zonas, usar visualização padrão
+        renderDefaultCard(card, container, config);
+        return;
+    }
     
     // Limpar container
     container.innerHTML = '';
@@ -227,9 +227,13 @@ function renderImageZone(zone, card, element, config) {
         const img = document.createElement('img');
         img.src = card.image_url;
         img.alt = card.name;
+        
+        // Aplicar ajustes de imagem
         img.style.width = '100%';
         img.style.height = '100%';
-        img.style.objectFit = 'contain';
+        img.style.objectFit = zone.image_fit || 'contain';
+        img.style.objectPosition = zone.image_position || 'center';
+        
         element.appendChild(img);
     } else {
         // Placeholder para quando não há imagem
@@ -259,4 +263,75 @@ function renderIconZone(zone, card, element, config) {
     
     // Adicionar o ícone
     element.textContent = iconName;
+}
+
+/**
+ * Aplica interatividade a uma zona (para modo de edição)
+ */
+function makeZoneInteractive(zoneElement, id, zone) {
+    // Adicionar classe visual para indicar que é interativo
+    zoneElement.classList.add('interactive-zone');
+    
+    // Adicionar controles de edição
+    const controlsWrapper = document.createElement('div');
+    controlsWrapper.className = 'zone-controls';
+    controlsWrapper.style.position = 'absolute';
+    controlsWrapper.style.top = '-20px';
+    controlsWrapper.style.right = '0';
+    controlsWrapper.style.zIndex = '100';
+    controlsWrapper.style.display = 'none';
+    
+    // Botão para mover
+    const moveBtn = document.createElement('button');
+    moveBtn.className = 'move-btn';
+    moveBtn.innerHTML = '🔄';
+    moveBtn.title = 'Mover';
+    moveBtn.style.width = '24px';
+    moveBtn.style.height = '24px';
+    moveBtn.style.marginRight = '5px';
+    moveBtn.style.background = '#4f46e5';
+    moveBtn.style.border = 'none';
+    moveBtn.style.borderRadius = '4px';
+    moveBtn.style.color = 'white';
+    moveBtn.style.cursor = 'move';
+    
+    // Botão para redimensionar
+    const resizeBtn = document.createElement('button');
+    resizeBtn.className = 'resize-btn';
+    resizeBtn.innerHTML = '⤡';
+    resizeBtn.title = 'Redimensionar';
+    resizeBtn.style.width = '24px';
+    resizeBtn.style.height = '24px';
+    resizeBtn.style.background = '#2563eb';
+    resizeBtn.style.border = 'none';
+    resizeBtn.style.borderRadius = '4px';
+    resizeBtn.style.color = 'white';
+    resizeBtn.style.cursor = 'se-resize';
+    
+    controlsWrapper.appendChild(moveBtn);
+    controlsWrapper.appendChild(resizeBtn);
+    zoneElement.appendChild(controlsWrapper);
+    
+    // Mostrar controles ao passar o mouse
+    zoneElement.addEventListener('mouseenter', () => {
+        controlsWrapper.style.display = 'flex';
+        zoneElement.style.boxShadow = '0 0 0 2px rgba(79, 70, 229, 0.6)';
+    });
+    
+    zoneElement.addEventListener('mouseleave', () => {
+        controlsWrapper.style.display = 'none';
+        zoneElement.style.boxShadow = 'none';
+    });
+    
+    // Evento de clique para edição
+    zoneElement.addEventListener('click', () => {
+        // Disparar evento customizado com informações da zona
+        const event = new CustomEvent('zone-selected', {
+            detail: { id, zone }
+        });
+        zoneElement.dispatchEvent(event);
+        
+        // Propagar o evento para o documento
+        document.dispatchEvent(event);
+    });
 }

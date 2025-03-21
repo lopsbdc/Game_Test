@@ -187,213 +187,88 @@ async function checkFields() {
 }
 
 // Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    updateFormFields();
-    document.getElementById('cardId').addEventListener('input', checkFields);
-    document.getElementById('cardName').addEventListener('input', checkFields);
-    
-    // Evento de mudança no select de template
-    // Evento de mudança no select de template
-    // Evento de mudança no select de template
-    const templateSelect = document.getElementById('templateSelect');
-    if (templateSelect) {
-        templateSelect.addEventListener('change', function() {
-            const previewContainer = document.getElementById('templatePreview');
-            if (this.value) {
-                // Mostrar o preview
-                previewContainer.classList.remove('hidden');
-                
-                // Mostrar um preview simples do template selecionado
-                const previewDiv = document.getElementById('previewContainer');
-                const templateName = this.options[this.selectedIndex].text;
-                
-                previewDiv.innerHTML = `
-                    <div class="p-4 text-center bg-gray-800 rounded">
-                        <div class="text-lg font-semibold text-blue-400">Template: ${templateName}</div>
-                        <div class="mt-2 text-sm text-gray-300">
-                            Este template será aplicado para definir a aparência visual da carta.
-                        </div>
-                    </div>
-                `;
-            } else {
-                previewContainer.classList.add('hidden');
-            }
-        });
-        
-        // Mostrar preview se um template estiver selecionado inicialmente
-        if (templateSelect.value) {
-            document.getElementById('templatePreview').classList.remove('hidden');
-            // Acionar o evento de mudança para mostrar o preview
-            templateSelect.dispatchEvent(new Event('change'));
-        }
-    }
-});
-
-// Função para renderizar o preview do template
-async function renderTemplatePreview() {
-    const templateId = document.getElementById('templateSelect').value;
-    const previewContainer = document.getElementById('previewContainer');
-    const templatePreview = document.getElementById('templatePreview');
+// Dentro do evento de mudança do templateSelect
+templateSelect.addEventListener('change', async function() {
+    const previewContainer = document.getElementById('templatePreview');
+    const templateId = this.value;
     
     if (!templateId) {
-        templatePreview.classList.add('hidden');
+        previewContainer.classList.add('hidden');
         return;
     }
     
     // Mostrar o container
-    templatePreview.classList.remove('hidden');
+    previewContainer.classList.remove('hidden');
+    const previewDiv = document.getElementById('previewContainer');
     
     try {
         // Buscar detalhes do template
-        const response = await fetch(`/templates/${templateId}`);
+        const response = await fetch(`/templates/${templateId}/json`);
         const templateData = await response.json();
         
-        if (!templateData || !templateData.zones) {
-            previewContainer.innerHTML = '<p class="text-gray-400">Este template não possui zonas definidas.</p>';
-            return;
-        }
+        // Obter dados atuais da carta do formulário
+        const cardData = {
+            name: document.querySelector('[name="name"]').value || 'Nome da Carta',
+            card_type: document.querySelector('[name="card_type"]').value || 'Tipo',
+            color: document.querySelector('[name="color"]').value || 'Blue',
+            cost: document.querySelector('[name="cost"]').value || '0',
+            power: document.querySelector('[name="power"]').value || '0',
+            text: document.querySelector('[name="text"]').value || 'Texto do efeito',
+            flavor_text: document.querySelector('[name="flavor_text"]').value || '',
+            image_url: document.querySelector('img[src^="/static/images/"]')?.src || ''
+        };
         
-        // Configurar o container
-        previewContainer.style.width = `${templateData.width_mm * 3}px`;
-        previewContainer.style.height = `${templateData.height_mm * 3}px`;
+        // Limpar o preview
+        previewDiv.innerHTML = '';
+        previewDiv.style.position = 'relative';
+        previewDiv.style.width = `${templateData.width_mm * 3}px`;
+        previewDiv.style.height = `${templateData.height_mm * 3}px`;
         
-        // Cor baseada no valor selecionado
-        const colorSelect = document.querySelector('[name="color"]');
-        let bgColor = 'rgba(66, 135, 245, 0.8)'; // Azul padrão
+        // Definir cor de fundo baseada na cor da carta
+        const colorMap = {
+            'Purple': 'rgba(138, 43, 226, 0.85)',
+            'Blue': 'rgba(30, 144, 255, 0.85)',
+            'Red': 'rgba(220, 53, 69, 0.85)',
+            'Green': 'rgba(40, 167, 69, 0.85)',
+            'Gold': 'rgba(255, 193, 7, 0.85)'
+        };
+        previewDiv.style.backgroundColor = colorMap[cardData.color] || 'rgba(108, 117, 125, 0.85)';
+        previewDiv.style.borderRadius = '8px';
         
-        if (colorSelect) {
-            const colorValue = colorSelect.value;
-            if (colorValue === 'Purple') bgColor = 'rgba(186, 104, 245, 0.8)';
-            else if (colorValue === 'Blue') bgColor = 'rgba(66, 135, 245, 0.8)';
-            else if (colorValue === 'Red') bgColor = 'rgba(245, 66, 66, 0.8)';
-            else if (colorValue === 'Green') bgColor = 'rgba(66, 245, 102, 0.8)';
-            else if (colorValue === 'Gold') bgColor = 'rgba(245, 209, 66, 0.8)';
-        }
-        
-        previewContainer.style.backgroundColor = bgColor;
-        
-        // Limpar o container
-        previewContainer.innerHTML = '';
-        
-        // Renderizar cada zona
-        Object.entries(templateData.zones).forEach(([id, zone]) => {
+        // Renderizar zonas do template
+        if (templateData.zones) {
             const scale = 0.75; // 3/4 do tamanho original
             
-            const zoneElement = document.createElement('div');
-            zoneElement.className = 'absolute';
-            
-            zoneElement.style.left = `${zone.x * scale}px`;
-            zoneElement.style.top = `${zone.y * scale}px`;
-            zoneElement.style.width = `${zone.width * scale}px`;
-            zoneElement.style.height = `${zone.height * scale}px`;
-            zoneElement.style.zIndex = zone.z_index || 1;
-            
-            // Aplicar outros estilos
-            if (zone.background_color) {
-                zoneElement.style.backgroundColor = zone.background_color;
-            }
-            if (zone.opacity !== undefined) {
-                zoneElement.style.opacity = zone.opacity;
-            }
-            if (zone.border_color) {
-                zoneElement.style.borderColor = zone.border_color;
-            }
-            if (zone.border_width) {
-                zoneElement.style.borderWidth = `${zone.border_width}px`;
-                zoneElement.style.borderStyle = 'solid';
-            }
-            if (zone.border_radius || zone.type === 'circle') {
-                const radius = zone.border_radius || (zone.type === 'circle' ? '50%' : '0');
-                zoneElement.style.borderRadius = typeof radius === 'number' ? `${radius}px` : radius;
-            }
-            
-            // Se for zona de texto, adicionar o texto atual do formulário
-            if (zone.type === 'text' && zone.field_name) {
-                const fieldInput = document.querySelector(`[name="${zone.field_name}"]`);
-                let fieldValue = '';
+            Object.entries(templateData.zones).forEach(([id, zone]) => {
+                const zoneElement = document.createElement('div');
+                zoneElement.className = 'absolute border border-white border-opacity-50';
+                zoneElement.style.position = 'absolute';
+                zoneElement.style.left = `${zone.x * scale}px`;
+                zoneElement.style.top = `${zone.y * scale}px`;
+                zoneElement.style.width = `${zone.width * scale}px`;
+                zoneElement.style.height = `${zone.height * scale}px`;
+                zoneElement.style.zIndex = zone.z_index || 1;
                 
-                if (fieldInput) {
-                    fieldValue = fieldInput.value || fieldInput.placeholder || zone.field_name;
-                }
+                // Adicionar texto indicando a zona
+                const label = document.createElement('div');
+                label.className = 'text-xs text-white bg-black bg-opacity-50 p-1';
+                label.textContent = `${id} (${zone.type})`;
+                zoneElement.appendChild(label);
                 
-                zoneElement.style.color = zone.text_color || '#FFFFFF';
-                zoneElement.style.fontSize = `${(zone.font_size || 12) * scale}px`;
-                zoneElement.style.textAlign = zone.text_align || 'left';
-                zoneElement.style.display = 'flex';
-                zoneElement.style.alignItems = 'center';
-                zoneElement.style.justifyContent = zone.text_align === 'center' ? 'center' : 'flex-start';
-                zoneElement.textContent = fieldValue;
-            } else if (zone.type === 'image') {
-                zoneElement.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-                zoneElement.style.display = 'flex';
-                zoneElement.style.alignItems = 'center';
-                zoneElement.style.justifyContent = 'center';
-                zoneElement.style.color = 'white';
-                zoneElement.style.fontSize = `${10 * scale}px`;
-                zoneElement.textContent = 'Imagem';
-                
-                // Tentar usar a imagem do formulário se disponível
-                const imageInput = document.querySelector('input[name="image"]');
-                if (imageInput && imageInput.files && imageInput.files[0]) {
-                    const imgElement = document.createElement('img');
-                    imgElement.style.width = '100%';
-                    imgElement.style.height = '100%';
-                    imgElement.style.objectFit = 'contain';
-                    zoneElement.textContent = '';
-                    zoneElement.appendChild(imgElement);
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imgElement.src = e.target.result;
-                    };
-                    reader.readAsDataURL(imageInput.files[0]);
-                } else if (document.querySelector('img[src^="/static/images/"]')) {
-                    // Se estiver editando uma carta e já tem imagem
-                    const imgSrc = document.querySelector('img[src^="/static/images/"]').src;
-                    const imgElement = document.createElement('img');
-                    imgElement.src = imgSrc;
-                    imgElement.style.width = '100%';
-                    imgElement.style.height = '100%';
-                    imgElement.style.objectFit = 'contain';
-                    zoneElement.textContent = '';
-                    zoneElement.appendChild(imgElement);
-                }
-            }
-            
-            previewContainer.appendChild(zoneElement);
-        });
+                previewDiv.appendChild(zoneElement);
+            });
+        } else {
+            previewDiv.innerHTML = '<div class="p-4 text-center text-white">Este template não possui zonas definidas.</div>';
+        }
         
     } catch (error) {
-        console.error('Erro ao carregar template:', error);
-        previewContainer.innerHTML = '<p class="text-red-400">Erro ao carregar template.</p>';
+        console.error('Erro ao carregar preview do template:', error);
+        previewDiv.innerHTML = '<div class="p-4 text-center text-red-500">Erro ao carregar preview do template.</div>';
     }
-}
-
-// Adicionar event listeners para atualizar o preview em tempo real
-document.addEventListener('DOMContentLoaded', function() {
-    // Eventos existentes...
-    
-    // Template select change
-    const templateSelect = document.getElementById('templateSelect');
-    if (templateSelect) {
-        templateSelect.addEventListener('change', renderTemplatePreview);
-        
-        // Renderizar o preview inicial se um template estiver selecionado
-        if (templateSelect.value) {
-            renderTemplatePreview();
-        }
-    }
-    
-    // Atualizar preview quando os campos mudarem
-    const formInputs = document.querySelectorAll('input, textarea, select');
-    formInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            if (templateSelect.value) {
-                renderTemplatePreview();
-            }
-        });
-    });
 });
+
+
+
 
 </script>
 {% endblock %}

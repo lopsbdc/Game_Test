@@ -18,7 +18,6 @@
                 <div><span class="font-bold">Texto:</span> {{ card.text }}</div>
             </div>
         </div>
-        {% if card.image_url %}
         <div class="w-96">
             <div id="cardRenderer" class="w-full rounded shadow-lg">
                 <!-- A carta será renderizada aqui via JavaScript -->
@@ -27,7 +26,6 @@
                 </div>
             </div>
         </div>
-        {% endif %}
     </div>
     <div class="mt-6">
         <a href="/cards" class="text-blue-400 hover:text-blue-300">Voltar</a>
@@ -36,40 +34,52 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Dados da carta
-        const card = {
-            id: "{{ card.id }}",
-            name: "{{ card.name }}",
-            card_type: "{{ card.card_type }}",
-            color: "{{ card.color }}",
-            cost: {{ card.cost or 'null' }},
-            power: {{ card.power or 'null' }},
-            rarity: "{{ card.rarity }}",
-            text: `{{ card.text|replace('\n', ' ')|safe }}`,
-            heat_effect: `{{ card.heat_effect|replace('\n', ' ')|safe if card.heat_effect else '' }}`,
-            heat_cost: {{ card.heat_cost or 'null' }},
-            flavor_text: `{{ card.flavor_text|replace('\n', ' ')|safe if card.flavor_text else '' }}`,
-            image_url: "{{ card.image_url or '' }}"
-        };
-        
-        {% if template_data %}
-            // Dados do template
-            const template = {{ template_data|tojson }};
-        
-        // Renderizar a carta com o template
-        const container = document.getElementById('cardRenderer');
-        renderCardWithTemplate(card, template, container, {
-            scale: 1.0,
-            mode: 'full'
-        });
-        {% else %}
-        // Sem template, usar visualização padrão
-        const container = document.getElementById('cardRenderer');
-        renderCardWithTemplate(card, null, container, {
-            scale: 1.0,
-            mode: 'full'
-        });
-        {% endif %}
+        try {
+            // Dados da carta
+            const card = {
+                id: "{{ card.id }}",
+                name: "{{ card.name }}",
+                card_type: "{{ card.card_type }}",
+                color: "{{ card.color }}",
+                cost: {{ card.cost or 'null' }},
+                power: {{ card.power or 'null' }},
+                rarity: "{{ card.rarity }}",
+                text: `{{ card.text|replace('\n', ' ')|safe }}`,
+                heat_effect: `{{ card.heat_effect|replace('\n', ' ')|safe if card.heat_effect else '' }}`,
+                heat_cost: {{ card.heat_cost or 'null' }},
+                flavor_text: `{{ card.flavor_text|replace('\n', ' ')|safe if card.flavor_text else '' }}`,
+                image_url: "{{ card.image_url or '' }}"
+            };
+            
+            {% if template_data %}
+                // Dados do template
+                const template = {{ template_data|tojson }};
+            
+                // Renderizar a carta com o template
+                const container = document.getElementById('cardRenderer');
+                if (container) {
+                    renderCardWithTemplate(card, template, container, {
+                        scale: 1.0,
+                        mode: 'full'
+                    });
+                } else {
+                    console.error('Container não encontrado');
+                }
+            {% else %}
+                // Sem template, usar visualização padrão
+                const container = document.getElementById('cardRenderer');
+                if (container) {
+                    renderCardWithTemplate(card, null, container, {
+                        scale: 1.0,
+                        mode: 'full'
+                    });
+                } else {
+                    console.error('Container não encontrado');
+                }
+            {% endif %}
+        } catch (error) {
+            console.error('Erro ao renderizar carta:', error);
+        }
     });
 </script>
 

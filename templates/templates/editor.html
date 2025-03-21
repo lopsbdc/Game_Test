@@ -54,6 +54,10 @@
                         <option value="rectangle">Retângulo</option>
                         <option value="circle">Círculo</option>
                         <option value="icon">Ícone</option>
+                        <option value="decoration">Decoração</option>
+                        <option value="border">Borda</option>
+                        <option value="frame">Moldura</option>
+                        <option value="empty">Área Vazia</option>
                     </select>
                 </div>
                 
@@ -85,6 +89,28 @@
                         <select id="zone-text-align" class="mt-1 w-full p-2 bg-gray-700 rounded">
                             <option value="left">Esquerda</option>
                             <option value="center">Centro</option>
+                            <option value="right">Direita</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="image-properties" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium">Ajuste da Imagem</label>
+                        <select id="zone-image-fit" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                            <option value="contain">Ajustar (manter proporção)</option>
+                            <option value="cover">Preencher</option>
+                            <option value="fill">Esticar</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Corte da Imagem</label>
+                        <select id="zone-image-position" class="mt-1 w-full p-2 bg-gray-700 rounded">
+                            <option value="center">Centro</option>
+                            <option value="top">Topo</option>
+                            <option value="bottom">Base</option>
+                            <option value="left">Esquerda</option>
                             <option value="right">Direita</option>
                         </select>
                     </div>
@@ -553,6 +579,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (type === 'circle' || document.getElementById('zone-border-radius').value > 0) {
             properties.border_radius = parseInt(document.getElementById('zone-border-radius').value);
         }
+
+        if (type === 'image') {
+            properties.image_fit = document.getElementById('zone-image-fit').value;
+            properties.image_position = document.getElementById('zone-image-position').value;
+        }
         
         // Se o ID mudou, precisamos criar uma nova entrada e excluir a antiga
         if (newId !== selectedZoneId) {
@@ -648,11 +679,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para alternar propriedades baseadas no tipo
     function togglePropertiesBasedOnType(type) {
-    // Mostrar/esconder propriedades de texto
+        // Mostrar/esconder propriedades de texto
         if (type === 'text') {
             document.getElementById('text-properties').classList.remove('hidden');
         } else {
             document.getElementById('text-properties').classList.add('hidden');
+        }
+        
+        // Mostrar/esconder propriedades de imagem
+        if (type === 'image') {
+            document.getElementById('image-properties').classList.remove('hidden');
+        } else {
+            document.getElementById('image-properties').classList.add('hidden');
         }
         
         // Mostrar/esconder propriedades de círculo
@@ -662,7 +700,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('circle-properties').classList.add('hidden');
         }
     }
-    
     // Função para salvar o template
     function saveTemplate() {
         // Mostrar indicador de carregamento
