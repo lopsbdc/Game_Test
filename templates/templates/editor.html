@@ -4,22 +4,109 @@
 <div class="container mx-auto p-4">
     <h2 class="text-2xl font-bold mb-4">Editor de Template: {{ template.name }}</h2>
     
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Área de Edição -->
-        <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg">
-            <div id="card-editor" class="relative border-2 border-gray-600 rounded overflow-hidden"
-                 style="width: {{ template.width_mm * 4 }}px; height: {{ template.height_mm * 4 }}px;
-                 {% if template.background_image_url %}
-                 background-image: url('{{ template.background_image_url }}');
-                 background-size: cover;
-                 background-position: center;
-                 {% else %}
-                 background-color: #1a1a1a;
-                 {% endif %}">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <!-- Menu de Formas - 1 coluna -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+            <h3 class="text-xl font-bold mb-4">Formas</h3>
+            
+            <div class="space-y-4">
+                <div class="shape-item" data-shape-type="rectangle">
+                    <div class="w-full h-16 bg-blue-500 rounded cursor-move flex items-center justify-center">
+                        Retângulo
+                    </div>
+                </div>
                 
-                <!-- Zonas serão renderizadas aqui via JavaScript -->
+                <div class="shape-item" data-shape-type="circle">
+                    <div class="w-full h-16 bg-green-500 rounded-full cursor-move flex items-center justify-center">
+                        Círculo
+                    </div>
+                </div>
                 
+                <div class="shape-item" data-shape-type="text">
+                    <div class="w-full h-16 bg-yellow-500 rounded cursor-move flex items-center justify-center">
+                        Texto
+                    </div>
+                </div>
+                
+                <div class="shape-item" data-shape-type="image">
+                    <div class="w-full h-16 bg-purple-500 rounded cursor-move flex items-center justify-center">
+                        Imagem
+                    </div>
+                </div>
+                
+                <div class="shape-item" data-shape-type="icon">
+                    <div class="w-full h-16 bg-red-500 rounded cursor-move flex items-center justify-center">
+                        Ícone
+                    </div>
+                </div>
             </div>
+        </div>
+        
+        <!-- Área de Edição - 3 colunas -->
+        <div class="lg:col-span-3">
+            <!-- Cole aqui o bloco de área de edição que modificamos no passo 1.1 -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <!-- Controles de Zoom -->
+                <div class="flex justify-between mb-4">
+                    <div>
+                        <button id="zoom-in-btn" class="px-2 py-1 bg-blue-600 rounded hover:bg-blue-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                <line x1="11" y1="8" x2="11" y2="14"></line>
+                                <line x1="8" y1="11" x2="14" y2="11"></line>
+                            </svg>
+                        </button>
+                        <button id="zoom-out-btn" class="px-2 py-1 bg-blue-600 rounded hover:bg-blue-700 ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                <line x1="8" y1="11" x2="14" y2="11"></line>
+                            </svg>
+                        </button>
+                        <span id="zoom-level" class="ml-2 text-sm">Zoom: 100%</span>
+                    </div>
+                    <div>
+                        <button id="toggle-grid-btn" class="px-2 py-1 bg-gray-600 rounded hover:bg-gray-500 mr-2">
+                            Mostrar Grade
+                        </button>
+                        <button id="reset-view-btn" class="px-2 py-1 bg-gray-600 rounded hover:bg-gray-500">
+                            Resetar Visualização
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Controles de Alinhamento -->
+                <div class="flex space-x-2 mb-4">
+                    <button data-align="left" class="align-btn px-2 py-1 bg-gray-600 rounded hover:bg-gray-500">◀</button>
+                    <button data-align="center-h" class="align-btn px-2 py-1 bg-gray-600 rounded hover:bg-gray-500">↔</button>
+                    <button data-align="right" class="align-btn px-2 py-1 bg-gray-600 rounded hover:bg-gray-500">▶</button>
+                    <div class="border-r border-gray-500 mx-1"></div>
+                    <button data-align="top" class="align-btn px-2 py-1 bg-gray-600 rounded hover:bg-gray-500">▲</button>
+                    <button data-align="center-v" class="align-btn px-2 py-1 bg-gray-600 rounded hover:bg-gray-500">↕</button>
+                    <button data-align="bottom" class="align-btn px-2 py-1 bg-gray-600 rounded hover:bg-gray-500">▼</button>
+                </div>
+                
+                <!-- Área de Edição com Zoom -->
+                <div class="editor-viewport bg-gray-900 overflow-auto" style="height: 600px; position: relative;">
+                    <div id="editor-container" class="transform-origin-center" style="transform: scale(1); display: inline-block;">
+                        <div id="card-editor" class="relative border-2 border-gray-600 rounded overflow-hidden"
+                            style="width: {{ template.width_mm * 4 }}px; height: {{ template.height_mm * 4 }}px;
+                            {% if template.background_image_url %}
+                            background-image: url('{{ template.background_image_url }}');
+                            background-size: cover;
+                            background-position: center;
+                            {% else %}
+                            background-color: #1a1a1a;
+                            {% endif %}">
+                            
+                            <!-- Zonas serão renderizadas aqui via JavaScript -->
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
             
             <div class="flex justify-between mt-4">
                 <button id="add-zone-btn" class="px-4 py-2 bg-green-600 rounded hover:bg-green-700">
@@ -119,10 +206,22 @@
                 <div>
                     <label class="block text-sm font-medium">Posição e Tamanho</label>
                     <div class="grid grid-cols-2 gap-2 mt-1">
-                        <input type="number" id="zone-x" placeholder="X" class="p-2 bg-gray-700 rounded">
-                        <input type="number" id="zone-y" placeholder="Y" class="p-2 bg-gray-700 rounded">
-                        <input type="number" id="zone-width" placeholder="Largura" class="p-2 bg-gray-700 rounded">
-                        <input type="number" id="zone-height" placeholder="Altura" class="p-2 bg-gray-700 rounded">
+                        <div>
+                            <label class="block text-xs text-gray-400">X (px)</label>
+                            <input type="number" id="zone-x" min="0" step="1" class="w-full p-2 bg-gray-700 rounded">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400">Y (px)</label>
+                            <input type="number" id="zone-y" min="0" step="1" class="w-full p-2 bg-gray-700 rounded">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400">Largura (px)</label>
+                            <input type="number" id="zone-width" min="1" step="1" class="w-full p-2 bg-gray-700 rounded">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400">Altura (px)</label>
+                            <input type="number" id="zone-height" min="1" step="1" class="w-full p-2 bg-gray-700 rounded">
+                        </div>
                     </div>
                 </div>
                 
@@ -210,6 +309,43 @@
 <!-- Scripts para o Editor -->
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script>
+
+// Configuração de zoom
+let currentZoom = 1;
+const zoomStep = 0.1;
+const minZoom = 0.5;
+const maxZoom = 3;
+
+// Aplicar estilo para a grade
+document.head.insertAdjacentHTML('beforeend', `
+    <style>
+        .with-grid {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 10px 10px;
+        }
+    </style>
+`);
+
+// Modificação para o rendering do background da carta
+function renderTemplateBg() {
+  const editorElement = document.getElementById('card-editor');
+  // Limpar estilo anterior
+  editorElement.style.backgroundImage = '';
+  editorElement.style.backgroundColor = '';
+  
+  // Aplicar a imagem de fundo
+  if (templateImageUrl) {
+    editorElement.style.backgroundImage = `url('${templateImageUrl}')`;
+    editorElement.style.backgroundSize = 'contain';  // mudar para 'cover' se quiser preencher completamente
+    editorElement.style.backgroundPosition = 'center';
+    editorElement.style.backgroundRepeat = 'no-repeat';
+  } else {
+    editorElement.style.backgroundColor = '#1a1a1a';
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // Configuração inicial
     const templateId = '{{ template.id }}';
@@ -238,6 +374,138 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('zone-type').addEventListener('change', function() {
         togglePropertiesBasedOnType(this.value);
     });
+
+    // Capturar o URL da imagem de template do elemento
+    const templateImageUrl = document.getElementById('card-editor').style.backgroundImage
+        .replace(/url\(['"]?(.*?)['"]?\)/i, '$1') || null;
+        
+    if (templateImageUrl) {
+        renderTemplateBg();
+    }
+
+    // Função para aplicar zoom
+    function applyZoom() {
+        const editorContainer = document.getElementById('editor-container');
+        editorContainer.style.transform = `scale(${currentZoom})`;
+        document.getElementById('zoom-level').textContent = `Zoom: ${Math.round(currentZoom * 100)}%`;
+    }
+
+    // Função para atualizar posição da zona por controles numéricos
+    function updateZonePosition() {
+        if (!selectedZoneId) return;
+        
+        const x = parseInt(document.getElementById('zone-x').value) || 0;
+        const y = parseInt(document.getElementById('zone-y').value) || 0;
+        
+        // Atualizar a posição na estrutura de dados
+        zones[selectedZoneId].x = x;
+        zones[selectedZoneId].y = y;
+        
+        // Atualizar a visualização
+        renderZones();
+    }
+
+    function updateZoneSize() {
+        if (!selectedZoneId) return;
+        
+        const width = parseInt(document.getElementById('zone-width').value) || 10;
+        const height = parseInt(document.getElementById('zone-height').value) || 10;
+        
+        // Atualizar o tamanho na estrutura de dados
+        zones[selectedZoneId].width = width;
+        zones[selectedZoneId].height = height;
+        
+        // Atualizar a visualização
+        renderZones();
+    }
+
+    // Função para criar uma nova zona por arrasto
+    function createNewZone(type, x, y) {
+        // Gerar ID único para a zona
+        const zoneId = `zone_${Date.now()}`;
+        
+        // Definir propriedades padrão baseadas no tipo
+        const defaultWidth = 100;
+        const defaultHeight = type === 'circle' ? 100 : 50;
+        
+        const zoneData = {
+            type,
+            x,
+            y,
+            width: defaultWidth,
+            height: defaultHeight,
+            z_index: 10
+        };
+        
+        // Adicionar campos específicos por tipo
+        if (type === 'text') {
+            zoneData.field_name = 'name'; // padrão para nome
+            zoneData.font_size = 16;
+            zoneData.text_align = 'left';
+            zoneData.text_color = '#FFFFFF';
+        } else if (type === 'image') {
+            zoneData.image_fit = 'contain';
+            zoneData.image_position = 'center';
+        } else if (type === 'circle') {
+            zoneData.border_radius = '50%';
+        }
+        
+        // Adicionar a nova zona ao objeto zones
+        zones[zoneId] = zoneData;
+        
+        // Renderizar a zona
+        renderZones();
+        
+        // Selecionar a nova zona para edição
+        selectZone(zoneId);
+    }
+
+    // Funções para mostrar/remover preview de arrasto
+    function showDragPreview(event) {
+        let preview = document.getElementById('drag-preview');
+        if (!preview) {
+            preview = document.createElement('div');
+            preview.id = 'drag-preview';
+            preview.style.position = 'fixed';
+            preview.style.zIndex = '1000';
+            preview.style.pointerEvents = 'none';
+            preview.style.width = '100px';
+            preview.style.height = '100px';
+            preview.style.opacity = '0.7';
+            
+            const shapeType = event.target.getAttribute('data-shape-type');
+            if (shapeType === 'circle') {
+                preview.style.borderRadius = '50%';
+                preview.style.backgroundColor = 'rgba(16, 185, 129, 0.7)'; // verde
+            } else if (shapeType === 'rectangle') {
+                preview.style.backgroundColor = 'rgba(59, 130, 246, 0.7)'; // azul
+            } else if (shapeType === 'text') {
+                preview.style.backgroundColor = 'rgba(245, 158, 11, 0.7)'; // amarelo
+                preview.textContent = 'Abc';
+                preview.style.display = 'flex';
+                preview.style.alignItems = 'center';
+                preview.style.justifyContent = 'center';
+            } else if (shapeType === 'image') {
+                preview.style.backgroundColor = 'rgba(139, 92, 246, 0.7)'; // roxo
+                preview.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%">🖼️</div>';
+            } else if (shapeType === 'icon') {
+                preview.style.backgroundColor = 'rgba(239, 68, 68, 0.7)'; // vermelho
+                preview.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%">⚡</div>';
+            }
+            
+            document.body.appendChild(preview);
+        }
+        
+        preview.style.left = `${event.clientX - 50}px`;
+        preview.style.top = `${event.clientY - 50}px`;
+    }
+
+    function removeDragPreview() {
+        const preview = document.getElementById('drag-preview');
+        if (preview) {
+            preview.remove();
+        }
+    }
     
     // Função para renderizar zonas no editor e previews
     function renderZones() {
@@ -532,6 +800,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (zone.type === 'circle' || zone.border_radius) {
             document.getElementById('zone-border-radius').value = zone.border_radius || 0;
         }
+
+        // Propriedades específicas para imagem
+        if (zone.type === 'image') {
+            document.getElementById('zone-image-fit').value = zone.image_fit || 'contain';
+            document.getElementById('zone-image-position').value = zone.image_position || 'center';
+        }
     }
     
     // Função para aplicar alterações de propriedades
@@ -611,6 +885,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Manter a nova zona selecionada
         selectZone(selectedZoneId);
+
+        // Propriedades específicas por tipo
+        if (type === 'text') {
+            properties.field_name = document.getElementById('zone-field').value;
+            properties.font_size = parseInt(document.getElementById('zone-font-size').value);
+            properties.text_color = document.getElementById('zone-text-color').value;
+            properties.text_align = document.getElementById('zone-text-align').value;
+        } else if (type === 'image') {
+            properties.image_fit = document.getElementById('zone-image-fit').value;
+            properties.image_position = document.getElementById('zone-image-position').value;
+        }
     }
     
     // Função para adicionar nova zona
@@ -676,6 +961,121 @@ document.addEventListener('DOMContentLoaded', function() {
             selectZone(null);
         }
     }
+
+        // Event listeners para zoom
+    document.getElementById('zoom-in-btn').addEventListener('click', function() {
+        if (currentZoom < maxZoom) {
+            currentZoom += zoomStep;
+            applyZoom();
+        }
+    });
+
+    document.getElementById('zoom-out-btn').addEventListener('click', function() {
+        if (currentZoom > minZoom) {
+            currentZoom -= zoomStep;
+            applyZoom();
+        }
+    });
+
+    document.getElementById('reset-view-btn').addEventListener('click', function() {
+        currentZoom = 1;
+        applyZoom();
+    });
+
+    // Event listener para grade
+    document.getElementById('toggle-grid-btn').addEventListener('click', function() {
+        const editor = document.getElementById('card-editor');
+        editor.classList.toggle('with-grid');
+        this.textContent = editor.classList.contains('with-grid') ? 'Esconder Grade' : 'Mostrar Grade';
+    });
+
+    // Event listeners para alinhamento
+    document.querySelectorAll('.align-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!selectedZoneId) return;
+            
+            const alignment = this.getAttribute('data-align');
+            const editorWidth = parseInt(document.getElementById('card-editor').style.width);
+            const editorHeight = parseInt(document.getElementById('card-editor').style.height);
+            const zone = zones[selectedZoneId];
+            
+            switch(alignment) {
+                case 'left':
+                    zone.x = 0;
+                    break;
+                case 'center-h':
+                    zone.x = (editorWidth - zone.width) / 2;
+                    break;
+                case 'right':
+                    zone.x = editorWidth - zone.width;
+                    break;
+                case 'top':
+                    zone.y = 0;
+                    break;
+                case 'center-v':
+                    zone.y = (editorHeight - zone.height) / 2;
+                    break;
+                case 'bottom':
+                    zone.y = editorHeight - zone.height;
+                    break;
+            }
+            
+            // Atualizar a visualização
+            renderZones();
+            updatePropertiesPanel(selectedZoneId);
+        });
+    });
+
+    // Event listeners para controles numéricos
+    document.getElementById('zone-x').addEventListener('input', updateZonePosition);
+    document.getElementById('zone-y').addEventListener('input', updateZonePosition);
+    document.getElementById('zone-width').addEventListener('input', updateZoneSize);
+    document.getElementById('zone-height').addEventListener('input', updateZoneSize);
+
+    // Configuração para arrastar e soltar formas
+    // Modificação para o arrastar e soltar
+    interact('.shape-item')
+    .draggable({
+        // Remover inertia para melhor controle
+        inertia: false,
+        autoScroll: true,
+        listeners: {
+        start(event) {
+            console.log('Iniciando arrasto de forma');
+        },
+        move(event) {
+            showDragPreview(event);
+        },
+        end(event) {
+            // Capturar melhor as coordenadas do editor
+            const shapeType = event.target.getAttribute('data-shape-type');
+            const editorElement = document.getElementById('card-editor');
+            const editorRect = editorElement.getBoundingClientRect();
+            
+            // Coordenadas relativas ao editor, ajustadas ao zoom
+            const dropX = (event.clientX - editorRect.left) / currentZoom;
+            const dropY = (event.clientY - editorRect.top) / currentZoom;
+            
+            console.log('Drop coordinates:', dropX, dropY);
+            console.log('Editor rect:', editorRect);
+            
+            // Verificar se está dentro do editor com uma margem de tolerância
+            const editorWidth = editorElement.offsetWidth / currentZoom;
+            const editorHeight = editorElement.offsetHeight / currentZoom;
+            
+            if (dropX >= -50 && dropY >= -50 && dropX <= editorWidth + 50 && dropY <= editorHeight + 50) {
+            // Ajustar coordenadas se necessário para ficar dentro dos limites
+            const adjustedX = Math.max(0, Math.min(dropX, editorWidth - 100));
+            const adjustedY = Math.max(0, Math.min(dropY, editorHeight - 100));
+            
+            // Criar nova zona com coordenadas ajustadas
+            createNewZone(shapeType, adjustedX, adjustedY);
+            }
+            
+            removeDragPreview();
+        }
+        }
+    });
     
     // Função para alternar propriedades baseadas no tipo
     function togglePropertiesBasedOnType(type) {
